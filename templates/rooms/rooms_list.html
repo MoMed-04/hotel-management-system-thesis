@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold m-0" style="color: var(--text-main);">{{ t('Room Management') }}</h3>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card p-2">
+            <div class="card-header border-0 pb-0">
+                <i class="fas fa-plus-circle me-2" style="color: var(--primary);"></i> {{ t('Add New Room') }}
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('rooms.create') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="small fw-bold mb-1" style="color: var(--text-muted);">{{ t('Room Number') }}</label>
+                        <input type="text" name="room_number" class="form-control" placeholder="e.g. 101" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold mb-1" style="color: var(--text-muted);">{{ t('Room Type') }}</label>
+                        <select name="room_type" class="form-select">
+                            <option value="Single">Single</option>
+                            <option value="Double">Double</option>
+                            <option value="Suite">Suite</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="small fw-bold mb-1" style="color: var(--text-muted);">{{ t('Price per Night') }}</label>
+                        <input type="number" step="0.01" name="price" class="form-control" placeholder="0.00" required>
+                    </div>
+                    <button type="submit" class="btn w-100 fw-bold" style="background-color: var(--primary); color: white;">{{ t('Save Room') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card p-2">
+            <div class="card-body p-0">
+                <table class="table mb-0 advanced-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">{{ t('Number') }}</th>
+                            <th>{{ t('Type') }}</th>
+                            <th>{{ t('Price') }}</th>
+                            <th>{{ t('Status') }}</th>
+                            <th class="pe-4 text-end">{{ t('Action') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for room in rooms %}
+                        <tr>
+                            <td class="ps-4 fw-bold" style="color: var(--text-main);">{{ room.room_number }}</td>
+                            <td style="color: var(--text-muted);">{{ room.room_type }}</td>
+                            <td class="fw-bold" style="color: var(--text-main);">${{ "%.2f"|format(room.price) }}</td>
+                            <td>
+                                {% if room.status == 'Available' %}
+                                    <span class="badge badge-saas bg-success-soft"><i class="fas fa-check me-1"></i> Available</span>
+                                {% elif room.status == 'Occupied' %}
+                                    <span class="badge badge-saas bg-primary-soft"><i class="fas fa-user-lock me-1"></i> Occupied</span>
+                                {% else %}
+                                    <span class="badge badge-saas bg-warning-soft"><i class="fas fa-tools me-1"></i> {{ room.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="pe-4 text-end">
+                                <form action="{{ url_for('rooms.delete', room_id=room.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm text-danger border-0" title="Delete Room" style="background: transparent;"><i class="fas fa-trash-alt"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

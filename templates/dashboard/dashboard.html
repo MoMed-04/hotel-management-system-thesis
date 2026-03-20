@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-4">
+    <h3 class="fw-bold mb-1" style="color: var(--text-main);">{{ t('Dashboard Overview') }}</h3>
+    <p style="color: var(--text-muted);">{{ t('Real-time stats') }}</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card p-4 h-100 d-flex justify-content-center">
+            <div class="d-flex align-items-center gap-4">
+                <div class="icon-box"><i class="fas fa-door-open"></i></div>
+                <div>
+                    <h6 style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.5px;" class="text-uppercase mb-1">{{ t('Total Rooms') }}</h6>
+                    <h2 class="fw-bold mb-0" style="color: var(--text-main);">{{ room_stats.total }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-4 h-100 d-flex justify-content-center">
+            <div class="d-flex align-items-center gap-4">
+                <div class="icon-box" style="background-color: rgba(1, 181, 116, 0.1); color: var(--success);"><i class="fas fa-check-circle"></i></div>
+                <div>
+                    <h6 style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.5px;" class="text-uppercase mb-1">{{ t('Available Rooms') }}</h6>
+                    <h2 class="fw-bold mb-0" style="color: var(--text-main);">{{ room_stats.available }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-4 h-100 d-flex justify-content-center">
+            <div class="d-flex align-items-center gap-4">
+                <div class="icon-box" style="background-color: rgba(255, 206, 32, 0.1); color: var(--warning);"><i class="fas fa-bell"></i></div>
+                <div>
+                    <h6 style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.5px;" class="text-uppercase mb-1">{{ t('Active Bookings') }}</h6>
+                    <h2 class="fw-bold mb-0" style="color: var(--text-main);">{{ active_bookings }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header border-0 pb-0">
+                {{ t('Revenue (Last 7 Days)') }}
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header border-0 pb-0">
+                {{ t('Room Status Breakdown') }}
+            </div>
+            <div class="card-body d-flex justify-content-center align-items-center">
+                <div style="width: 250px; height: 250px;">
+                    <canvas id="roomStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card p-2">
+            <div class="card-header border-0 pb-0">
+                <i class="fas fa-calendar-day me-2" style="color: var(--primary);"></i> {{ t('Today\'s Check-ins') }}
+            </div>
+            <div class="card-body p-0 mt-2">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">{{ t('ID') }}</th>
+                            <th>{{ t('Guest Name') }}</th>
+                            <th>{{ t('Room') }}</th>
+                            <th>{{ t('Status') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if todays_checkins %}
+                            {% for b in todays_checkins %}
+                            <tr>
+                                <td class="ps-4" style="color: var(--text-muted);">#{{ b.id }}</td>
+                                <td class="fw-bold" style="color: var(--text-main);">{{ b.full_name }}</td>
+                                <td style="color: var(--text-muted);"><i class="fas fa-door-closed me-1"></i> {{ b.room_number }}</td>
+                                <td>
+                                    {% if b.status == 'Confirmed' %}
+                                        <span class="badge badge-saas bg-primary-soft">{{ t('Confirmed') }}</span>
+                                    {% elif b.status == 'Checked-In' %}
+                                        <span class="badge badge-saas bg-warning-soft">{{ t('Checked-In') }}</span>
+                                    {% else %}
+                                        <span class="badge badge-saas bg-success-soft">{{ b.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4" style="color: var(--text-muted);">
+                                    No check-ins scheduled for today.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- 1. Doughnut Chart (Room Status) ---
+        // Wrapped in quotes and parsed to keep VS Code happy
+        const totalRooms = parseInt("{{ room_stats.total }}", 10);
+        const availableRooms = parseInt("{{ room_stats.available }}", 10);
+        const occupiedRooms = totalRooms - availableRooms;
+
+        const ctxPie = document.getElementById('roomStatusChart').getContext('2d');
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['Available', 'Occupied'],
+                datasets: [{
+                    data: [availableRooms, occupiedRooms],
+                    backgroundColor: ['#01B574', '#4318FF'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#A3AED0' } } } }
+        });
+
+        // --- 2. Line Chart (Revenue) ---
+        // Wrapped in single quotes and parsed as JSON to fix VS Code syntax errors!
+        const chartLabels = JSON.parse('{{ chart_labels | tojson | safe }}');
+        const revenueData = JSON.parse('{{ revenue_data | tojson | safe }}');
+
+        const ctxLine = document.getElementById('revenueChart').getContext('2d');
+        
+        // Create a beautiful SaaS gradient for the line chart
+        let gradient = ctxLine.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(67, 24, 255, 0.5)'); // Top color (Primary)
+        gradient.addColorStop(1, 'rgba(67, 24, 255, 0.0)'); // Bottom color (Transparent)
+
+        new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: revenueData,
+                    borderColor: '#4318FF',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#4318FF',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.4 // Gives the line a smooth, curved SaaS look
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }, // Hide legend for cleaner look
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(163, 174, 208, 0.1)', borderDash: [5, 5] },
+                        ticks: { color: '#A3AED0', callback: function(value) { return '$' + value; } }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: '#A3AED0' }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

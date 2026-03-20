@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold m-0" style="color: var(--text-main);">{{ t('Reservation Management') }}</h3>
+    <div>
+        <a href="{{ url_for('bookings.export_csv') }}" class="btn fw-bold me-2" style="background-color: var(--sidebar-hover); color: var(--text-main); border: 1px solid var(--border);">
+            <i class="fas fa-file-csv me-2" style="color: var(--success);"></i> Export CSV
+        </a>
+        <a href="{{ url_for('bookings.create') }}" class="btn fw-bold" style="background-color: var(--primary); color: white;">
+            <i class="fas fa-plus me-2"></i> {{ t('New Booking') }}
+        </a>
+    </div>
+</div>
+
+<div class="card p-2">
+    <div class="card-body p-0">
+        <table class="table mb-0 advanced-table">
+            <thead>
+                <tr>
+                    <th class="ps-4">{{ t('ID') }}</th>
+                    <th>{{ t('Guest Name') }}</th>
+                    <th>{{ t('Room') }}</th>
+                    <th>{{ t('Check-in') }}</th>
+                    <th>{{ t('Check-out') }}</th>
+                    <th>{{ t('Status') }}</th>
+                    <th class="pe-4 text-end">{{ t('Actions') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bookings %}
+                <tr>
+                    <td class="ps-4" style="color: var(--text-muted);">#{{ b.id }}</td>
+                    <td class="fw-bold" style="color: var(--text-main);">{{ b.full_name }}</td>
+                    <td style="color: var(--text-muted);"><i class="fas fa-door-closed me-1"></i> {{ b.room_number }}</td>
+                    <td style="color: var(--text-muted);">{{ b.check_in_date }}</td>
+                    <td style="color: var(--text-muted);">{{ b.check_out_date }}</td>
+                    <td>
+                        {% if b.status == 'Confirmed' %}
+                            <span class="badge badge-saas bg-primary-soft"><i class="fas fa-calendar-check me-1"></i> {{ t('Confirmed') }}</span>
+                        {% elif b.status == 'Checked-In' %}
+                            <span class="badge badge-saas bg-warning-soft"><i class="fas fa-key me-1"></i> {{ t('Checked-In') }}</span>
+                        {% elif b.status == 'Completed' %}
+                            <span class="badge badge-saas bg-success-soft"><i class="fas fa-check-double me-1"></i> {{ t('Completed') }}</span>
+                        {% else %}
+                            <span class="badge badge-saas bg-danger-soft"><i class="fas fa-ban me-1"></i> {{ b.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="pe-4 text-end">
+                        {% if b.status == 'Confirmed' %}
+                            <form action="{{ url_for('bookings.change_status', booking_id=b.id, new_status='Checked-In') }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-sm border-0" title="Check In" style="background: transparent; color: var(--success);"><i class="fas fa-sign-in-alt fs-5"></i></button>
+                            </form>
+                            <form action="{{ url_for('bookings.change_status', booking_id=b.id, new_status='Cancelled') }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-sm border-0" title="{{ t('Cancel') }}" style="background: transparent; color: var(--danger);"><i class="fas fa-times fs-5"></i></button>
+                            </form>
+                        {% elif b.status == 'Checked-In' %}
+                            <form action="{{ url_for('bookings.change_status', booking_id=b.id, new_status='Completed') }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-sm border-0" title="Check Out" style="background: transparent; color: var(--text-main);"><i class="fas fa-sign-out-alt fs-5"></i></button>
+                            </form>
+                        {% elif b.status == 'Completed' %}
+                            <a href="{{ url_for('bookings.generate_invoice', booking_id=b.id) }}" class="btn btn-sm border-0" title="View Invoice" target="_blank" style="background: transparent; color: var(--primary);"><i class="fas fa-file-invoice-dollar fs-5"></i></a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

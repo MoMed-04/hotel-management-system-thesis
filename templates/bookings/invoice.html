@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice #{{ booking.id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f7fa; font-family: 'Inter', sans-serif; }
+        .invoice-box {
+            max-width: 800px; margin: 40px auto; padding: 40px;
+            background: #fff; box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            border-top: 6px solid #2b2b2b;
+        }
+        .invoice-header { display: flex; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px; }
+        .invoice-title { font-size: 2.5rem; font-weight: bold; color: #2b2b2b; }
+        .total-row { font-weight: bold; font-size: 1.2rem; background-color: #f8f9fa; }
+        /* Hide the print button when actually printing */
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: #fff; }
+            .invoice-box { box-shadow: none; margin: 0; padding: 0; border: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="text-end mt-4 no-print">
+        <a href="{{ url_for('bookings.index') }}" class="btn btn-secondary me-2"><i class="fas fa-arrow-left"></i> Back</a>
+        <button onclick="window.print()" class="btn btn-dark"><i class="fas fa-file-pdf"></i> Download PDF / Print</button>
+    </div>
+
+    <div class="invoice-box">
+        <div class="invoice-header">
+            <div>
+                <h2><i class="fas fa-hotel"></i> Grand Hotel System</h2>
+                <p class="text-muted m-0">123 Academic Way, University District<br>info@grandhotel.com | (555) 123-4567</p>
+            </div>
+            <div class="text-end">
+                <div class="invoice-title">INVOICE</div>
+                <p class="m-0"><strong>Invoice #:</strong> INV-{{ "1000%04d" | format(booking.id) }}</p>
+                <p class="m-0"><strong>Date:</strong> {{ booking.check_out_date }}</p>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-sm-6">
+                <h5 class="text-muted">Billed To:</h5>
+                <strong>{{ booking.full_name }}</strong><br>
+                Phone: {{ booking.phone }}<br>
+                Email: {{ booking.email or 'N/A' }}
+            </div>
+            <div class="col-sm-6 text-end">
+                <h5 class="text-muted">Reservation Details:</h5>
+                Room: <strong>{{ booking.room_number }}</strong> ({{ booking.room_type }})<br>
+                Check-in: {{ booking.check_in_date }}<br>
+                Check-out: {{ booking.check_out_date }}
+            </div>
+        </div>
+
+        <table class="table table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>Description</th>
+                    <th class="text-center">Nights</th>
+                    <th class="text-end">Rate / Night</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Accommodation - Room {{ booking.room_number }} ({{ booking.room_type }})</td>
+                    <td class="text-center">{{ nights }}</td>
+                    <td class="text-end">${{ "%.2f"|format(booking.price) }}</td>
+                    <td class="text-end">${{ "%.2f"|format(total_amount) }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="3" class="text-end border-0 pt-4">Total Balance Due:</td>
+                    <td class="text-end border-0 pt-4 text-primary">${{ "%.2f"|format(total_amount) }}</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="text-center mt-5 pt-4 border-top text-muted">
+            <p>Thank you for choosing Grand Hotel! We hope to see you again.</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

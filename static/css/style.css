@@ -1,0 +1,244 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+/* --- LIGHT THEME (Default) --- */
+:root {
+    --primary: #4318FF;        /* Vibrant SaaS Indigo/Blue */
+    --primary-soft: #E9E3FF;   /* Light purple/blue background for icons */
+    --bg: #F4F7FE;             /* Very light grey/blue canvas */
+    --card: #FFFFFF;           /* Pure white cards */
+    --text-main: #2B3674;      /* Deep navy text (softer than pure black) */
+    --text-muted: #A3AED0;     /* Muted grey text */
+    --border: #E0E5F2;         /* Soft borders */
+    --sidebar-bg: #FFFFFF;
+    --sidebar-hover: #F4F7FE;
+    --shadow: 0 18px 40px rgba(112, 144, 176, 0.12); /* Large, soft, diffuse shadow */
+    
+    --success: #01B574;
+    --danger: #EE5D50;
+    --warning: #FFCE20;
+}
+
+/* --- DARK THEME --- */
+[data-theme="dark"] {
+    --primary: #7551FF;        /* Brighter Indigo for dark backgrounds */
+    --primary-soft: #22144A; 
+    --bg: #0B1437;             /* Deep Navy Canvas (Like Image 2) */
+    --card: #111C44;           /* Slightly lighter navy for cards */
+    --text-main: #FFFFFF;      /* White text */
+    --text-muted: #A3AED0;     /* Muted grey/blue text */
+    --border: #1B254B;         /* Dark borders */
+    --sidebar-bg: #111C44;
+    --sidebar-hover: #1B254B;
+    --shadow: 0 18px 40px rgba(0, 0, 0, 0.4); /* Darker shadow */
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif; /* A premium, modern geometric font */
+    background-color: var(--bg);
+    color: var(--text-main);
+    margin: 0;
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* --- Layout --- */
+.wrapper { display: flex; width: 100%; min-height: 100vh; }
+
+/* --- Sidebar (Floating Pill Style) --- */
+#sidebar {
+    min-width: 280px;
+    max-width: 280px;
+    background-color: var(--sidebar-bg);
+    position: fixed;
+    height: 100vh;
+    z-index: 100;
+    border-right: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+#sidebar .sidebar-brand {
+    padding: 32px 32px 24px 32px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#sidebar .sidebar-brand i { color: var(--primary); font-size: 1.8rem; }
+
+#sidebar ul { padding: 0 16px; list-style: none; margin: 0; }
+
+#sidebar ul li a {
+    padding: 14px 20px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    border-radius: 12px; /* Pill shape */
+    transition: all 0.2s ease;
+}
+
+#sidebar ul li a i { font-size: 1.1rem; width: 24px; text-align: center; }
+
+#sidebar ul li a:hover {
+    background-color: var(--sidebar-hover);
+    color: var(--text-main);
+}
+
+/* The Active Highlight (Like the references) */
+#sidebar ul li a.active {
+    background-color: var(--primary);
+    color: #FFFFFF;
+    box-shadow: 0 5px 14px rgba(67, 24, 255, 0.3); /* Glowing active state */
+}
+
+/* --- Main Content Area --- */
+#content {
+    width: calc(100% - 280px);
+    margin-left: 280px;
+    padding: 32px 40px;
+    transition: all 0.3s;
+}
+
+/* --- Top Navigation --- */
+.top-navbar {
+    background: var(--card);
+    padding: 16px 24px;
+    border-radius: 20px; /* High border radius */
+    box-shadow: var(--shadow);
+    margin-bottom: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(10px); /* Glassmorphism hint */
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+/* --- Modern Cards --- */
+.card {
+    background: var(--card);
+    border: none;
+    border-radius: 20px; /* Super rounded corners like Shopzy */
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, background-color 0.3s;
+    margin-bottom: 24px;
+}
+
+.card:hover { transform: translateY(-4px); }
+
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--border);
+    padding: 24px;
+    font-weight: 700;
+    color: var(--text-main);
+    font-size: 1.1rem;
+}
+
+/* --- Stat Icon Boxes --- */
+.icon-box {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background-color: var(--primary-soft);
+    color: var(--primary);
+}
+
+/* --- Tables --- */
+.table { color: var(--text-main); }
+.table th {
+    background-color: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    padding: 20px 16px;
+    border-bottom: 1px solid var(--border);
+}
+.table td { 
+    padding: 20px 16px; 
+    vertical-align: middle; 
+    border-bottom: 1px solid var(--border); 
+}
+.table tbody tr:hover { background-color: var(--sidebar-hover); }
+
+/* --- Theme Toggle Button --- */
+.theme-toggle-btn {
+    background: var(--sidebar-hover);
+    border: none;
+    color: var(--text-muted);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.theme-toggle-btn:hover { color: var(--primary); }
+/* --- OVERRIDE BOOTSTRAP DEFAULTS FOR DARK MODE --- */
+.text-muted { color: var(--text-muted) !important; }
+.text-dark { color: var(--text-main) !important; }
+.bg-white, .bg-light { background-color: var(--card) !important; border-color: var(--border) !important; }
+.form-control, .form-select { 
+    background-color: var(--bg); 
+    color: var(--text-main); 
+    border: 1px solid var(--border); 
+}
+.form-control:focus, .form-select:focus {
+    background-color: var(--card);
+    color: var(--text-main);
+}
+/* --- TABLE & DATATABLES DARK MODE FIXES --- */
+
+/* 1. Force table rows and cells to be transparent so the dark card shows through */
+table.table, .table tbody tr, .table td, .table th {
+    background-color: transparent !important;
+    color: var(--text-main) !important;
+    border-color: var(--border) !important;
+    box-shadow: none !important;
+}
+
+/* 2. Fix the hover effect on rows */
+.table-hover tbody tr:hover td, .table tbody tr:hover td {
+    background-color: var(--sidebar-hover) !important;
+    color: var(--text-main) !important;
+}
+
+/* 3. Fix DataTables text (Search, "Showing 1 of 10", Pagination) */
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+    color: var(--text-muted) !important;
+    margin-bottom: 15px;
+    margin-top: 10px;
+}
+
+/* 4. Fix DataTables Search Inputs and Dropdowns */
+.dataTables_wrapper select,
+.dataTables_wrapper input {
+    background-color: var(--bg) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px;
+    padding: 4px 10px;
+    outline: none;
+}
+
+.dataTables_wrapper select:focus,
+.dataTables_wrapper input:focus {
+    border-color: var(--primary) !important;
+}
