@@ -6,145 +6,157 @@
         <h2 class="fw-bold m-0" style="color: var(--text-main);">
             <i class="fas fa-star text-warning me-2"></i>{{ t('Real Guest Experiences') }}
         </h2>
-        <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
+        <button class="btn btn-primary fw-bold" onclick="openReviewModal()">
             <i class="fas fa-pen me-2"></i>{{ t('Write a Review') }}
         </button>
     </div>
 
     <div class="row g-4" id="reviewsContainer">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border) !important;">
-                <img src="https://images.unsplash.com/photo-1542314831-c6a4d27ce605?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="card-img-top" style="height: 250px; object-fit: cover; border-top-left-radius: 1rem; border-top-right-radius: 1rem;" alt="Guest Photo">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">AM</div>
-                            <div>
-                                <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Alex Mercer</h6>
-                                <small class="text-muted">{{ t('Stayed in Executive Suite') }}</small>
-                            </div>
-                        </div>
-                        <div class="text-warning">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                    </div>
-                    <p style="color: var(--text-main); opacity: 0.9;">"{{ t('Absolutely stunning view from the balcony. The real-time booking engine was flawless and the room was exactly as pictured.') }}"</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border) !important;">
-                <img src="https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="card-img-top" style="height: 250px; object-fit: cover; border-top-left-radius: 1rem; border-top-right-radius: 1rem;" alt="Breakfast Photo">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">LW</div>
-                            <div>
-                                <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Linda W.</h6>
-                                <small class="text-muted">{{ t('Stayed in Deluxe Single') }}</small>
-                            </div>
-                        </div>
-                        <div class="text-warning">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
-                        </div>
-                    </div>
-                    <p style="color: var(--text-main); opacity: 0.9;">"{{ t('The customer service chat module was incredibly responsive. Breakfast in bed was the highlight of our trip!') }}"</p>
-                </div>
-            </div>
+        <div class="col-12 text-center py-5" id="loadingReviews">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Loading reviews...</p>
         </div>
     </div>
 </div>
 
+<!-- Write Review Modal -->
 <div class="modal fade" id="writeReviewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="background: var(--bg-secondary, #fff); border: 1px solid var(--border);">
             <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold" style="color: var(--text-main);"><i class="fas fa-pen text-primary me-2"></i>{{ t('Submit Your Feedback') }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(var(--invert-icon, 0));"></button>
+                <h5 class="modal-title fw-bold" style="color: var(--text-main);">
+                    <i class="fas fa-pen text-primary me-2"></i>{{ t('Submit Your Feedback') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold" style="color: var(--text-main);">{{ t('Rate Your Stay') }}</label>
-                        <select class="form-select" id="reviewStars">
-                            <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
-                            <option value="4">⭐⭐⭐⭐ (Very Good)</option>
-                            <option value="3">⭐⭐⭐ (Average)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold" style="color: var(--text-main);">{{ t('Which room did you stay in?') }}</label>
-                        <select class="form-select" id="reviewRoom">
-                            <option>Room 101 (Deluxe Single)</option>
-                            <option>Room 201 (Executive Suite)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold" style="color: var(--text-main);">{{ t('Your Review') }}</label>
-                        <textarea id="reviewText" class="form-control" rows="4" placeholder="{{ t('Tell us about your experience...') }}"></textarea>
-                    </div>
-                </form>
+                <div class="mb-3">
+                    <label class="form-label fw-bold" style="color: var(--text-main);">{{ t('Rate Your Stay') }}</label>
+                    <select class="form-select" id="reviewStars">
+                        <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+                        <option value="4">⭐⭐⭐⭐ (Good)</option>
+                        <option value="3">⭐⭐⭐ (Average)</option>
+                        <option value="2">⭐⭐ (Poor)</option>
+                        <option value="1">⭐ (Terrible)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold" style="color: var(--text-main);">{{ t('Which room did you stay in?') }}</label>
+                    <select class="form-select" id="reviewRoom">
+                        <option value="">Loading your booked rooms...</option>
+                    </select>
+                    <small class="text-muted">Only rooms you have booked are shown.</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold" style="color: var(--text-main);">{{ t('Your Review') }}</label>
+                    <textarea class="form-control" id="reviewText" rows="4" placeholder="{{ t('Tell us about your experience...') }}"></textarea>
+                </div>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('Cancel') }}</button>
-                <button type="button" id="submitReviewBtn" class="btn btn-primary fw-bold" data-bs-dismiss="modal">{{ t('Post Review') }}</button>
+                <button type="button" class="btn btn-primary fw-bold" onclick="submitReview()">
+                    <i class="fas fa-paper-plane me-2"></i>{{ t('Post Review') }}
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    document.getElementById('submitReviewBtn').addEventListener('click', function() {
-        // Grab the text you typed
-        const userText = document.getElementById('reviewText').value;
-        const selectedRoom = document.getElementById('reviewRoom').value;
-        
-        // If it's empty, do nothing
-        if(!userText.trim()) return;
+    // Load reviews on page load
+    async function loadReviews() {
+        try {
+            const res = await fetch('/guest/api/get_reviews');
+            const data = await res.json();
+            const container = document.getElementById('reviewsContainer');
 
-        // Build the HTML for the new review card
-        const newCardHTML = `
-        <div class="col-md-6" style="animation: fadeIn 0.5s;">
-            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border) !important; border-left: 5px solid #0d6efd !important;">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">{{ session.get('username')[0] | upper }}</div>
-                            <div>
-                                <h6 class="mb-0 fw-bold" style="color: var(--text-main);">{{ session.get('username') }}</h6>
-                                <small class="text-muted">{{ t('Stayed in ') }} ${selectedRoom}</small>
+            if (!data.success || data.reviews.length === 0) {
+                container.innerHTML = `<div class="col-12 text-center py-5"><p class="text-muted">No reviews yet. Be the first to write one!</p></div>`;
+                return;
+            }
+
+            const stars = (n) => '⭐'.repeat(n) + '☆'.repeat(5 - n);
+            const colors = ['bg-primary', 'bg-success', 'bg-danger', 'bg-warning', 'bg-info'];
+
+            container.innerHTML = data.reviews.map((r, i) => `
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="${colors[i % colors.length]} text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width:40px;height:40px;">
+                                    ${r.username.substring(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold" style="color: var(--text-main);">${r.username}</h6>
+                                    <small class="text-muted">Stayed in ${r.room_type}</small>
+                                </div>
                             </div>
+                            <div class="text-warning fs-5">${stars(r.stars)}</div>
                         </div>
-                        <div class="text-warning">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
+                        <p style="color: var(--text-main); opacity: 0.9;">"${r.review}"</p>
                     </div>
-                    <p class="fst-italic" style="color: var(--text-main); opacity: 0.9;">"${userText}"</p>
                 </div>
-            </div>
-        </div>`;
-
-        // Inject it right at the top of the reviews grid
-        document.getElementById('reviewsContainer').insertAdjacentHTML('afterbegin', newCardHTML);
-        
-        // Clear the text box for next time
-        document.getElementById('reviewText').value = '';
-        
-        // Show success popup
-        Swal.fire({
-            title: '{{ t("Review Posted!") }}',
-            text: '{{ t("Thank you for sharing your experience with us.") }}',
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false
-        });
-    });
-</script>
-<style>
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
+            `).join('');
+        } catch (err) {
+            console.error(err);
+        }
     }
-</style>
+
+    // Open review modal and load guest's booked rooms
+    async function openReviewModal() {
+        try {
+            const res = await fetch('/guest/api/my_rooms');
+            const data = await res.json();
+            const select = document.getElementById('reviewRoom');
+
+            if (!data.success || data.rooms.length === 0) {
+                select.innerHTML = '<option value="">No bookings found — book a room first!</option>';
+            } else {
+                select.innerHTML = data.rooms.map(r =>
+                    `<option value="${r.id}">Room ${r.room_number} (${r.room_type})</option>`
+                ).join('');
+            }
+        } catch (err) {
+            console.error(err);
+        }
+        new bootstrap.Modal(document.getElementById('writeReviewModal')).show();
+    }
+
+    // Submit review
+    async function submitReview() {
+        const stars = document.getElementById('reviewStars').value;
+        const room_id = document.getElementById('reviewRoom').value;
+        const review = document.getElementById('reviewText').value.trim();
+
+        if (!room_id) {
+            alert('Please select a room.');
+            return;
+        }
+        if (!review) {
+            alert('Please write a review.');
+            return;
+        }
+
+        try {
+            const res = await fetch('/guest/api/submit_review', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stars, room_id, review })
+            });
+            const data = await res.json();
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('writeReviewModal')).hide();
+                document.getElementById('reviewText').value = '';
+                loadReviews();
+                alert('Review posted successfully!');
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (err) {
+            alert('Something went wrong.');
+        }
+    }
+
+    loadReviews();
+</script>
 {% endblock %}
