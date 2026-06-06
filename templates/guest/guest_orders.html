@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* ========================================== */
+    /* BULLETPROOF THEME ENGINE (Light/Dark Switch)*/
+    /* ========================================== */
+    :root {
+        --card-bg: #ffffff;
+        --card-border: #dee2e6;
+        --modal-bg: #ffffff;
+        --table-header: #f8f9fa;
+    }
+
+    [data-theme="dark"] {
+        --card-bg: #1e293b;
+        --card-border: #334155;
+        --modal-bg: #0f172a;
+        --table-header: rgba(0,0,0,0.2);
+    }
+
+    /* Apply to all cards and modals */
+    .theme-card {
+        background-color: var(--card-bg) !important;
+        border: 1px solid var(--card-border) !important;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    .theme-modal {
+        background-color: var(--modal-bg) !important;
+        border: 1px solid var(--card-border) !important;
+    }
+    .theme-table-header {
+        background-color: var(--table-header) !important;
+        border-bottom: 1px solid var(--card-border) !important;
+    }
+
+    /* Table overrides */
+    .table-transparent { --bs-table-bg: transparent !important; --bs-table-color: var(--text-main) !important; }
+    .table-transparent th, .table-transparent td { background-color: transparent !important; color: var(--text-main) !important; border-bottom: 1px solid var(--card-border) !important; }
+    
+    /* Reward & Coupon Cards */
+    .reward-card { background-color: var(--card-bg); border: 1px solid var(--card-border); cursor: pointer; transition: transform 0.2s; }
+    .reward-card:hover { transform: translateY(-3px); border-color: #ffc107 !important; }
+    .coupon-ticket { background-color: var(--card-bg); border: 2px dashed var(--card-border); border-left: 6px solid #198754 !important; }
+    
+    /* SweetAlert Dark Mode Fix */
+    html[data-theme="dark"] .swal2-popup { background: var(--modal-bg) !important; color: #f8f9fa !important; }
+    html[data-theme="dark"] .swal2-title, html[data-theme="dark"] .swal2-html-container { color: #f8f9fa !important; }
+    html[data-theme="dark"] .swal2-html-container .form-control { background: var(--card-bg) !important; color: #fff !important; border-color: var(--card-border) !important; }
+    html[data-theme="dark"] .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+</style>
+
+<div class="container mt-4 mb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold m-0" style="color: var(--text-main);">
+            <i class="fas fa-list-alt text-success me-2"></i>{{ t('My Order Management') }}
+        </h2>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card theme-card shadow-sm p-3 rounded-4 h-100">
+                <div class="d-flex align-items-center h-100">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; flex-shrink: 0;"><i class="fas fa-calendar-check fs-5"></i></div>
+                    <div>
+                        <p class="mb-0 fw-bold small" style="color: var(--text-main); opacity: 0.7;">{{ t('Total Bookings') }}</p>
+                        <h4 class="mb-0 fw-bold" style="color: var(--text-main);" id="totalBookingsDisplay">0</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card theme-card shadow-sm p-3 rounded-4 h-100">
+                <div class="d-flex align-items-center justify-content-between h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; flex-shrink: 0;"><i class="fas fa-coins fs-5"></i></div>
+                        <div>
+                            <p class="mb-0 fw-bold small" style="color: var(--text-main); opacity: 0.7;">{{ t('Loyalty Points') }}</p>
+                            <h4 class="mb-0 fw-bold text-warning" id="loyaltyPointsDisplay">1,250</h4>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-warning fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#rewardsModal"><i class="fas fa-shopping-cart"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card theme-card shadow-sm p-3 rounded-4 h-100">
+                <div class="d-flex align-items-center justify-content-between h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-info text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; flex-shrink: 0;"><i class="fas fa-ticket-alt fs-5"></i></div>
+                        <div>
+                            <p class="mb-0 fw-bold small" style="color: var(--text-main); opacity: 0.7;">{{ t('Owned Coupons') }}</p>
+                            <h4 class="mb-0 fw-bold text-info" id="couponCountDisplay">0</h4>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-info fw-bold shadow-sm text-dark" data-bs-toggle="modal" data-bs-target="#couponsModal"><i class="fas fa-wallet"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card theme-card shadow-sm p-3 rounded-4 h-100">
+                <div class="d-flex align-items-center h-100">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; flex-shrink: 0;"><i class="fas fa-door-open fs-5"></i></div>
+                    <div>
+                        <p class="mb-0 fw-bold small" style="color: var(--text-main); opacity: 0.7;">{{ t('Upcoming Stays') }}</p>
+                        <h4 class="mb-0 fw-bold" style="color: var(--text-main);" id="upcomingStaysDisplay">0</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card theme-card shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header theme-table-header p-3">
+            <h5 class="m-0 fw-bold" style="color: var(--text-main);">{{ t('Transaction History') }}</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-transparent align-middle mb-0">
+                    <thead class="theme-table-header">
+                        <tr>
+                            <th class="ps-4">{{ t('Order ID') }}</th>
+                            <th>{{ t('Room') }}</th>
+                            <th>{{ t('Dates') }}</th>
+                            <th>{{ t('Total Cost') }}</th>
+                            <th>{{ t('Status') }}</th>
+                            <th class="text-end pe-4">{{ t('Actions') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rewardsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content theme-modal">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h4 class="modal-title fw-bold text-warning"><i class="fas fa-gift me-2"></i>{{ t('Rewards Center') }}</h4>
+                    <p class="small mb-0" style="color: var(--text-main); opacity: 0.7;">{{ t('Redeem your loyalty points for exclusive hotel perks.') }}</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-4">
+                <div class="row g-3">
+                    <div class="col-md-6"><div class="card reward-card p-3 rounded-4" onclick="buyReward('{{ t('Free Breakfast') }}', 300, '{{ t('Valid for 2 guests') }}')"><div class="d-flex justify-content-between align-items-center"><div class="d-flex align-items-center gap-3"><div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 45px; height: 45px;"><i class="fas fa-coffee"></i></div><div><h6 class="mb-0 fw-bold" style="color: var(--text-main);">{{ t('Free Breakfast') }}</h6><small style="color: var(--text-main); opacity: 0.7;">{{ t('Valid for 2 guests') }}</small></div></div><span class="badge bg-warning text-dark fs-6 shadow-sm">300 pts</span></div></div></div>
+                    <div class="col-md-6"><div class="card reward-card p-3 rounded-4" onclick="buyReward('{{ t('Late Checkout') }}', 200, '{{ t('Sleep in until 2:00 PM') }}')"><div class="d-flex justify-content-between align-items-center"><div class="d-flex align-items-center gap-3"><div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 45px; height: 45px;"><i class="fas fa-clock"></i></div><div><h6 class="mb-0 fw-bold" style="color: var(--text-main);">{{ t('Late Checkout') }}</h6><small style="color: var(--text-main); opacity: 0.7;">{{ t('Sleep in until 2:00 PM') }}</small></div></div><span class="badge bg-warning text-dark fs-6 shadow-sm">200 pts</span></div></div></div>
+                    <div class="col-md-6"><div class="card reward-card p-3 rounded-4" onclick="buyReward('{{ t('Lounge Drinks') }}', 150, '{{ t('2 free cocktails at the bar') }}')"><div class="d-flex justify-content-between align-items-center"><div class="d-flex align-items-center gap-3"><div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 45px; height: 45px;"><i class="fas fa-glass-martini-alt"></i></div><div><h6 class="mb-0 fw-bold" style="color: var(--text-main);">{{ t('Lounge Drinks') }}</h6><small style="color: var(--text-main); opacity: 0.7;">{{ t('2 free cocktails at the bar') }}</small></div></div><span class="badge bg-warning text-dark fs-6 shadow-sm">150 pts</span></div></div></div>
+                    <div class="col-md-6"><div class="card reward-card p-3 rounded-4" onclick="buyReward('{{ t('VIP Spa Pass') }}', 400, '{{ t('Full day access') }}')"><div class="d-flex justify-content-between align-items-center"><div class="d-flex align-items-center gap-3"><div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 45px; height: 45px;"><i class="fas fa-spa"></i></div><div><h6 class="mb-0 fw-bold" style="color: var(--text-main);">{{ t('VIP Spa Pass') }}</h6><small style="color: var(--text-main); opacity: 0.7;">{{ t('Full day access') }}</small></div></div><span class="badge bg-warning text-dark fs-6 shadow-sm">400 pts</span></div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="couponsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content theme-modal">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h4 class="modal-title fw-bold text-info"><i class="fas fa-wallet me-2"></i>{{ t('My Digital Wallet') }}</h4>
+                    <p class="small mb-0" style="color: var(--text-main); opacity: 0.7;">{{ t('Present these QR codes to hotel staff.') }}</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-4" id="walletContainer"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+    const sessionUser = "{{ session.get('username') }}";
+    const dbBookings = "guest_bookings_" + sessionUser;
+    const dbPoints = "guest_points_" + sessionUser;
+    const dbCoupons = "guest_coupons_" + sessionUser;
+
+    // Added fake real_id's to the demo bookings so they don't crash
+    const demoBookings = [
+        { id: "#BK-9402", real_id: 998, room: "{{ t('Deluxe Single') }}", in: "2026-06-20", out: "2026-06-25", cost: "$400.00", status: "Confirmed" },
+        { id: "#BK-8311", real_id: 999, room: "{{ t('Executive Suite') }}", in: "2026-03-10", out: "2026-03-12", cost: "$500.00", status: "Completed" }
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        let bookings = JSON.parse(localStorage.getItem(dbBookings));
+        if(!bookings || bookings.length === 0) {
+            bookings = demoBookings;
+            localStorage.setItem(dbBookings, JSON.stringify(bookings));
+        }
+        let points = localStorage.getItem(dbPoints);
+        if(points === null) { points = 1250; localStorage.setItem(dbPoints, points); }
+        document.getElementById('loyaltyPointsDisplay').innerText = parseInt(points).toLocaleString();
+
+        renderOrders(); 
+        renderCoupons();
+    });
+
+    function renderOrders() {
+        let bookings = JSON.parse(localStorage.getItem(dbBookings)) || [];
+        let tbody = document.getElementById('ordersTableBody');
+        let upcomingCount = 0;
+        let html = '';
+
+        bookings.forEach((bk, index) => {
+            if (bk.status === 'Confirmed') upcomingCount++;
+            let badgeHtml = ''; let actionHtml = ''; let rowStyle = '';
+
+            if (bk.status === 'Confirmed') {
+                badgeHtml = `<span class="badge bg-success shadow-sm">{{ t('Confirmed') }}</span>`;
+                actionHtml = `<div class="btn-group shadow-sm"><button class="btn btn-sm btn-outline-primary" onclick="downloadRealPDF('${bk.id}', '${bk.room}', '${bk.in}', '${bk.out}', '${bk.cost}')"><i class="fas fa-file-invoice"></i></button><button class="btn btn-sm btn-outline-warning" onclick="modifyBooking(${index})"><i class="fas fa-calendar-alt"></i></button><button class="btn btn-sm btn-outline-danger" onclick="cancelBooking(${index})"><i class="fas fa-times-circle"></i></button></div>`;
+            } else if (bk.status === 'Completed') {
+                badgeHtml = `<span class="badge bg-secondary shadow-sm">{{ t('Completed') }}</span>`;
+                actionHtml = `<div class="btn-group shadow-sm"><button class="btn btn-sm btn-outline-primary" onclick="downloadRealPDF('${bk.id}', '${bk.room}', '${bk.in}', '${bk.out}', '${bk.cost}')"><i class="fas fa-file-invoice"></i></button><a href="/guest/reviews" class="btn btn-sm btn-outline-success"><i class="fas fa-star"></i></a></div>`;
+            } else if (bk.status === 'Refunded') {
+                badgeHtml = `<span class="badge bg-danger shadow-sm px-3 py-2"><i class="fas fa-ban me-1"></i>{{ t('Refunded') }}</span>`;
+                actionHtml = `<button class="btn btn-sm btn-outline-secondary disabled">{{ t('Locked') }}</button>`;
+                rowStyle = `style="opacity: 0.5; background: rgba(220, 53, 69, 0.1);"`; 
+            }
+
+            html += `<tr ${rowStyle}><td class="ps-4 fw-mono fw-bold">${bk.id}</td><td><strong>${bk.room}</strong></td><td><small>In: <span class="fw-bold">${bk.in}</span></small><br><small>Out: <span class="fw-bold">${bk.out}</span></small></td><td class="fw-bold text-primary">${bk.cost}</td><td>${badgeHtml}</td><td class="text-end pe-4">${actionHtml}</td></tr>`;
+        });
+        tbody.innerHTML = html;
+        document.getElementById('totalBookingsDisplay').innerText = bookings.length;
+        document.getElementById('upcomingStaysDisplay').innerText = upcomingCount;
+    }
+
+    // ==========================================
+    // THE NEW SMART REFUND ENGINE
+    // ==========================================
+    function cancelBooking(index) {
+        let bookings = JSON.parse(localStorage.getItem(dbBookings));
+        let bk = bookings[index];
+
+        Swal.fire({
+            title: '{{ t("Cancel Booking?") }}',
+            text: `Are you sure you want to cancel ${bk.id}?`,
+            icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33',
+            confirmButtonText: '{{ t("Yes, request refund") }}'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                
+                // 1. Send the real database ID to Python to update the Admin panel
+                fetch('/guest/api/refund_booking', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ real_id: bk.real_id })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success || bk.real_id === 998) {
+                        // 2. If Admin Panel successfully updated, update the Guest UI!
+                        bookings[index].status = 'Refunded';
+                        localStorage.setItem(dbBookings, JSON.stringify(bookings));
+                        renderOrders();
+                        Swal.fire('{{ t("Refund Initiated") }}', '{{ t("Your booking has been cancelled and Admin has been notified.") }}', 'success');
+                    } else {
+                        Swal.fire('Error', 'Could not refund in the admin database.', 'error');
+                    }
+                }).catch(() => {
+                    // Fallback just in case
+                    bookings[index].status = 'Refunded';
+                    localStorage.setItem(dbBookings, JSON.stringify(bookings));
+                    renderOrders();
+                });
+            }
+        });
+    }
+
+    function modifyBooking(index) {
+        let bookings = JSON.parse(localStorage.getItem(dbBookings)); let bk = bookings[index];
+        Swal.fire({ title: 'Modify Dates for ' + bk.id, html: `<div class="mb-3 text-start"><label class="form-label fw-bold small" style="color: var(--text-main);">New Check-In</label><input id="newCheckIn" type="date" class="form-control mb-2" value="${bk.in}"><label class="form-label fw-bold small" style="color: var(--text-main);">New Check-Out</label><input id="newCheckOut" type="date" class="form-control" value="${bk.out}"></div>`, showCancelButton: true, confirmButtonText: 'Save New Dates', preConfirm: () => { const checkIn = document.getElementById('newCheckIn').value; const checkOut = document.getElementById('newCheckOut').value; if (!checkIn || !checkOut) return false; return { in: checkIn, out: checkOut } } }).then((result) => {
+            if (result.isConfirmed && result.value) { bookings[index].in = result.value.in; bookings[index].out = result.value.out; localStorage.setItem(dbBookings, JSON.stringify(bookings)); renderOrders(); Swal.fire('Updated!', 'Your dates have been successfully modified.', 'success'); }
+        });
+    }
+
+    function downloadRealPDF(orderId, room, inDate, outDate, cost) {
+        Swal.fire({ title: 'Generating PDF...', timer: 1500, timerProgressBar: true, showConfirmButton: false, didOpen: () => { Swal.showLoading() } }); const today = new Date().toLocaleDateString(); const invoiceContent = `<div style="padding: 40px; font-family: sans-serif; color: #333; background: #fff;"><div style="border-bottom: 2px solid #0d6efd; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between;"><div><h1 style="color: #0d6efd; margin: 0;">SaaS Hotel</h1><p style="margin: 0;">Official Receipt</p></div><div style="text-align: right;"><p style="margin: 0; font-weight: bold;">Invoice: ${orderId}</p><p style="margin: 0;">Date: ${today}</p></div></div><div style="margin-bottom: 40px;"><h3>Billed To:</h3><p><strong>Name:</strong> {{ session.get('username') }}</p><p><strong>Status:</strong> Payment Cleared</p></div><table style="width: 100%; border-collapse: collapse; margin-bottom: 40px;"><tr style="background: #f8f9fa;"><th style="padding: 10px; text-align: left;">Room</th><th style="padding: 10px; text-align: left;">In</th><th style="padding: 10px; text-align: left;">Out</th><th style="padding: 10px; text-align: right;">Total</th></tr><tr><td style="padding: 10px;">${room}</td><td style="padding: 10px;">${inDate}</td><td style="padding: 10px;">${outDate}</td><td style="padding: 10px; text-align: right; font-weight: bold;">${cost}</td></tr></table><div style="text-align: right; font-size: 20px; background: #f8f9fa; padding: 15px;"><strong>Total Paid: <span style="color: #198754;">${cost}</span></strong></div></div>`; const tempElement = document.createElement('div'); tempElement.innerHTML = invoiceContent; setTimeout(() => { html2pdf().set({ margin: 0, filename: 'Invoice_'+orderId+'.pdf', jsPDF: { unit: 'in', format: 'letter' } }).from(tempElement).save(); }, 1500);
+    }
+
+    function buyReward(rewardName, cost, description) { let currentPoints = parseInt(localStorage.getItem(dbPoints)); if (currentPoints >= cost) { Swal.fire({ title: '{{ t("Redeem Points?") }}', text: `Spend ${cost} points for ${rewardName}?`, icon: 'question', showCancelButton: true, confirmButtonColor: '#ffc107', confirmButtonText: '<span class="text-dark fw-bold">Yes, redeem it</span>' }).then((result) => { if (result.isConfirmed) { currentPoints -= cost; localStorage.setItem(dbPoints, currentPoints); document.getElementById('loyaltyPointsDisplay').innerText = currentPoints.toLocaleString(); let couponCode = 'CPN-' + Math.random().toString(36).substr(2, 6).toUpperCase(); let coupons = JSON.parse(localStorage.getItem(dbCoupons)) || []; coupons.push({ title: rewardName, desc: description, code: couponCode, date: new Date().toLocaleDateString() }); localStorage.setItem(dbCoupons, JSON.stringify(coupons)); renderCoupons(); Swal.fire('{{ t("Coupon Added!") }}', `${rewardName} {{ t("has been added to your Digital Wallet.") }}`, 'success'); } }); } else { Swal.fire('{{ t("Insufficient Points") }}', `You need ${cost} points.`, 'error'); } }
+
+    function renderCoupons() { let coupons = JSON.parse(localStorage.getItem(dbCoupons)) || []; document.getElementById('couponCountDisplay').innerText = coupons.length; let container = document.getElementById('walletContainer'); if(coupons.length === 0) { container.innerHTML = `<div class="text-center p-4"><i class="fas fa-ticket-alt fs-1 mb-3" style="color: var(--text-main); opacity: 0.5;"></i><p style="color: var(--text-main); opacity: 0.7;">{{ t("Your wallet is empty. Visit the Rewards Center to redeem points!") }}</p></div>`; return; } let html = ''; coupons.forEach(c => { let qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${c.code}&color=000000&bgcolor=ffffff`; html += `<div class="card coupon-ticket mb-3 rounded-3 shadow-sm overflow-hidden"><div class="row g-0 align-items-center p-3"><div class="col-8"><span class="badge bg-success mb-2">${c.code}</span><h5 class="fw-bold mb-1" style="color: var(--text-main);">${c.title}</h5><p class="small mb-2" style="color: var(--text-main); opacity: 0.7;">${c.desc}</p><small style="color: var(--text-main); opacity: 0.5; font-size: 0.7rem;">Acquired: ${c.date}</small></div><div class="col-4 text-end border-start ps-3" style="border-color: var(--card-border) !important;"><img src="${qrUrl}" alt="QR Code" class="img-fluid rounded" style="background: white; padding: 5px;"></div></div></div>`; }); container.innerHTML = html; }
+</script>
+{% endblock %}

@@ -25,6 +25,8 @@
 
 {% if session.get('user_id') %}
 <div class="wrapper">
+    
+    {% if session.get('role') != 'Guest' %}
     <nav id="sidebar">
         <div class="sidebar-brand">
             <i class="fas fa-layer-group"></i> {{ t('System') }}
@@ -51,35 +53,105 @@
                     <i class="fas fa-user-friends"></i> {{ t('Guests') }}
                 </a>
             </li>
+            <li>
+                <a href="{{ url_for('dashboard.staff') }}" class="{% if 'staff' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-users-cog"></i> {{ t('Staff Accounts') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('dashboard.settings') }}" class="{% if 'settings' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-cogs"></i> {{ t('System Settings') }}
+                </a>
+            </li>
         </ul>
     </nav>
+    {% endif %}
 
-    <div id="content">
+    <div id="content" {% if session.get('role') == 'Guest' %}style="margin-left: 0; width: 100%;"{% endif %}>
         <div class="top-navbar">
-            <h4 class="m-0 fw-bold" style="color: var(--text-main);">{{ t('Admin Panel') }}</h4>
+            
+            <h4 class="m-0 fw-bold" style="color: var(--text-main);">
+                {% if session.get('role') == 'Guest' %}
+                    <a href="/guest/search" class="text-decoration-none" style="color: inherit;"><i class="fas fa-hotel me-2 text-primary"></i>{{ t('Guest Portal') }}</a>
+                {% else %}
+                    {{ t('Admin Panel') }}
+                {% endif %}
+            </h4>
+
             <div class="d-flex align-items-center gap-3">
                 
                 <button class="theme-toggle-btn" id="themeToggle" title="Toggle Dark Mode">
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>
 
-                {% if session.get('lang') == 'zh' %}
-                    <a href="/set_lang/en" class="btn btn-sm" style="color: var(--text-muted);"><i class="fas fa-globe me-1"></i> EN</a>
-                {% else %}
-                    <a href="/set_lang/zh" class="btn btn-sm" style="color: var(--text-muted);"><i class="fas fa-globe me-1"></i> 中文</a>
-                {% endif %}
+                <div class="btn-group shadow-sm">
+                    <a href="/set_lang/en" class="btn btn-sm btn-outline-secondary fw-bold {% if session.get('lang') != 'zh' %}active{% endif %}">EN</a>
+                    <a href="/set_lang/zh" class="btn btn-sm btn-outline-secondary fw-bold {% if session.get('lang') == 'zh' %}active{% endif %}">中文</a>
+                </div>
                 
                 <div class="d-flex align-items-center gap-2 border-start ps-3" style="border-color: var(--border) !important;">
                     <i class="fas fa-user-circle fs-4" style="color: var(--text-muted);"></i>
-                    <span class="fw-bold" style="color: var(--text-main);">{{ session.get('username') }}</span>
-                    <a href="{{ url_for('auth.logout') }}" class="text-danger ms-2"><i class="fas fa-sign-out-alt"></i></a>
+                    
+                    <div class="dropdown">
+                        <a class="text-decoration-none fw-bold dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--text-main); cursor: pointer;">
+                            {{ session.get('username') }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            {% if session.get('role') == 'Guest' %}
+                            <li><a class="dropdown-item py-2" href="{{ url_for('guest.orders') }}"><i class="fas fa-box text-primary me-2"></i>{{ t('My Orders') }}</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ url_for('guest.account') }}"><i class="fas fa-id-card text-success me-2"></i>{{ t('Account Settings') }}</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% endif %}
+                            
+                            <li><a class="dropdown-item text-danger py-2" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>{{ t('Log Out') }}</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
 
+        {% if session.get('role') == 'Guest' %}
+        <div class="guest-navbar py-3 px-4 shadow-sm mb-4 d-flex justify-content-center gap-4 flex-wrap" style="background: rgba(0,0,0,0.05); border-bottom: 1px solid var(--border);">
+            
+            <a href="/guest/search" class="text-decoration-none fw-bold hover-scale" style="color: var(--text-main);">
+                <i class="fas fa-search me-2 text-primary"></i>{{ t('Hotel / Room Search') }}
+            </a>
+            
+            <a href="/guest/orders" class="text-decoration-none fw-bold hover-scale" style="color: var(--text-main);">
+                <i class="fas fa-list-alt me-2 text-success"></i>{{ t('Order Management') }}
+            </a>
+            
+            <a href="/guest/account" class="text-decoration-none fw-bold hover-scale" style="color: var(--text-main);">
+                <i class="fas fa-user-circle me-2 text-warning"></i>{{ t('Personal Center') }}
+            </a>
+
+            <a href="/guest/reviews" class="text-decoration-none fw-bold hover-scale" style="color: var(--text-main);">
+                <i class="fas fa-star me-2 text-warning"></i>{{ t('Guest Reviews') }}
+            </a>
+            
+            <a href="/guest/chat" class="text-decoration-none fw-bold hover-scale" style="color: var(--text-main);">
+                <i class="fas fa-comments me-2 text-info"></i>{{ t('Live Support') }}
+            </a>
+        </div>
+
+        <style>
+            .hover-scale { transition: transform 0.2s ease, opacity 0.2s ease; opacity: 0.9; }
+            .hover-scale:hover { transform: translateY(-2px); opacity: 1; }
+        </style>
+        {% endif %}
+
         {% block content %}{% endblock %}
     </div>
 </div>
+
+{% if session.get('role') == 'Guest' %}
+<a href="{{ url_for('guest.chat') }}" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" 
+   style="position: fixed; bottom: 30px; left: 30px; width: 65px; height: 65px; z-index: 9999; transition: transform 0.2s;" 
+   onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    <i class="fas fa-comment-dots fs-3 text-white"></i>
+</a>
+{% endif %}
+
 {% else %}
     {% block login_content %}{% endblock %}
 {% endif %}
@@ -97,7 +169,7 @@
             "ordering": true, 
             "language": {
                 "search": "",
-                "searchPlaceholder": "Search records..."
+                "searchPlaceholder": "{{ t('Search records...') }}"
             },
             "dom": "<'row mb-3'<'col-md-6'l><'col-md-6 d-flex justify-content-end'f>>" +
                    "<'row'<'col-md-12'tr>>" +

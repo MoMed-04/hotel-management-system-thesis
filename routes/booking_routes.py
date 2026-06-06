@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, Response
+from flask import Blueprint, render_template, request, redirect, url_for, Response, session
 from datetime import datetime
+from models.db import get_db
 from models.booking_model import get_all_bookings, is_room_available, create_booking, update_booking_status, get_booking_by_id
 from models.customer_model import get_all_customers
 from models.room_model import get_all_rooms
@@ -8,7 +9,21 @@ booking_bp = Blueprint('bookings', __name__, url_prefix='/bookings')
 
 @booking_bp.route('/')
 def index():
-    bookings = get_all_bookings()
+    # Upgrade: We use raw SQL here to guarantee we pull the phone and email from the CRM!
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT b.id, c.full_name, c.phone, c.email, r.room_number, 
+               b.check_in_date, b.check_out_date, b.status 
+        FROM bookings b
+        JOIN customers c ON b.customer_id = c.id
+        JOIN rooms r ON b.room_id = r.id
+        ORDER BY b.id DESC
+    """)
+    columns = [column[0] for column in cursor.description]
+    bookings = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    
+    # Points exactly to your file from the screenshot!
     return render_template('bookings/bookings_list.html', bookings=bookings)
 
 @booking_bp.route('/add', methods=['GET', 'POST'])
@@ -35,14 +50,16 @@ def create():
     customers = get_all_customers()
     rooms = get_all_rooms()
     return render_template('bookings/new_booking.html', customers=customers, rooms=rooms)
+
 @booking_bp.route('/<int:booking_id>/status/<new_status>', methods=['POST'])
 def change_status(booking_id, new_status):
     # Security check to ensure only valid statuses are processed
-    valid_statuses = ['Checked-In', 'Completed', 'Cancelled']
+    valid_statuses = ['Checked-In', 'Completed', 'Cancelled', 'Refunded']
     if new_status in valid_statuses:
         update_booking_status(booking_id, new_status)
     
     return redirect(url_for('bookings.index'))
+
 @booking_bp.route('/<int:booking_id>/invoice')
 def generate_invoice(booking_id):
     booking = get_booking_by_id(booking_id)
@@ -61,6 +78,7 @@ def generate_invoice(booking_id):
     total_amount = nights * booking['price']
 
     return render_template('bookings/invoice.html', booking=booking, nights=nights, total_amount=total_amount)
+
 @booking_bp.route('/export-csv')
 def export_csv():
     """Generates a downloadable CSV report of all bookings."""

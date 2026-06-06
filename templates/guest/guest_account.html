@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* ========================================== */
+    /* BULLETPROOF THEME ENGINE (Light/Dark Switch)*/
+    /* ========================================== */
+    :root {
+        --card-bg: #ffffff;
+        --card-border: #dee2e6;
+        --input-bg: #ffffff;
+    }
+
+    [data-theme="dark"] {
+        --card-bg: #1e293b;
+        --card-border: #334155;
+        --input-bg: #0f172a;
+    }
+
+    .theme-card {
+        background-color: var(--card-bg) !important;
+        border: 1px solid var(--card-border) !important;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* Force input boxes to respect dark mode */
+    html[data-theme="dark"] .form-control {
+        background-color: var(--input-bg) !important;
+        color: var(--text-main) !important;
+        border-color: var(--card-border) !important;
+    }
+    html[data-theme="dark"] .form-control::placeholder {
+        color: #94a3b8 !important;
+    }
+    
+    /* SweetAlert Dark Mode Fix */
+    html[data-theme="dark"] .swal2-popup { background: var(--card-bg) !important; color: #f8f9fa !important; }
+    html[data-theme="dark"] .swal2-title, html[data-theme="dark"] .swal2-html-container { color: #f8f9fa !important; }
+</style>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card theme-card shadow-sm rounded-4 p-4">
+                <div class="d-flex align-items-center mb-4 pb-3" style="border-bottom: 1px solid var(--card-border);">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                        <i class="fa-solid fa-user-gear fs-3"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0" style="color: var(--text-main);">{{ t('Personal Center') }}</h3>
+                        <p class="mb-0" style="color: var(--text-main); opacity: 0.7;">{{ t('Manage your secure guest account credentials and profile configurations.') }}</p>
+                    </div>
+                </div>
+
+                <form onsubmit="event.preventDefault(); Swal.fire('{{ t('Saved!') }}', '{{ t('Your profile has been successfully updated.') }}', 'success');">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small" style="color: var(--text-main);">{{ t('Username / Account ID') }}</label>
+                            <input type="text" class="form-control form-control-lg" value="{{ session.get('username') }}" disabled style="opacity: 0.7;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small" style="color: var(--text-main);">{{ t('Full Name') }}</label>
+                            <input type="text" class="form-control form-control-lg" value="Mohamed Matrouh" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small" style="color: var(--text-main);">{{ t('Email Address') }}</label>
+                            <input type="email" class="form-control form-control-lg" value="guest@example.com" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small" style="color: var(--text-main);">{{ t('Phone Number') }}</label>
+                            <input type="text" class="form-control form-control-lg" value="+86 135 OOOO OOOO" required>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-3" style="color: var(--text-main);"><i class="fa-solid fa-lock me-2 text-warning"></i>{{ t('Security Parameter Update') }}</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <input type="password" class="form-control" placeholder="{{ t('New Secure Password') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <input type="password" class="form-control" placeholder="{{ t('Confirm Password') }}">
+                        </div>
+                    </div>
+
+                    <div class="text-end border-top pt-4" style="border-color: var(--card-border) !important;">
+                        <button type="submit" class="btn btn-primary btn-lg px-4 fw-bold rounded-3">{{ t('Save Changes') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

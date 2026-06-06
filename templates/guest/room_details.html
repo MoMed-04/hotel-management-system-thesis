@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row g-5">
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm overflow-hidden rounded-4">
+                <img src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" class="img-fluid" alt="Room Image">
+                <div class="card-body p-4">
+                    <h2 class="fw-bold mb-3">{{ t('Deluxe Suite Details') }}</h2>
+                    <h3 class="text-primary fw-bold mb-4">$250 <small class="text-muted fs-6">/ {{ t('night') }}</small></h3>
+                    <p class="text-muted lead mb-4">
+                        {{ t('Experience top-tier hospitality with our carefully curated deluxe arrangements. This room features a premium king-sized bed, high-resolution smart entertainment setup, a dedicated workstation, and a private balcony overlooking the city skyline.') }}
+                    </p>
+                    <hr class="my-4">
+                    <h5 class="fw-bold mb-3">{{ t('Amenities Included') }}</h5>
+                    <div class="row g-2 text-muted">
+                        <div class="col-6"><i class="fa-solid fa-wifi text-primary me-2"></i>{{ t('Ultra High-Speed Wi-Fi') }}</div>
+                        <div class="col-6"><i class="fa-solid fa-snowflake text-primary me-2"></i>{{ t('Climate Control AC') }}</div>
+                        <div class="col-6"><i class="fa-solid fa-martini-glass text-primary me-2"></i>{{ t('Fully Stocked Minibar') }}</div>
+                        <div class="col-6"><i class="fa-solid fa-clock text-primary me-2"></i>{{ t('24/7 Room Service') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h4 class="fw-bold mb-3">{{ t('Reserve This Room') }}</h4>
+                <form action="/guest/book" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">{{ t('Check-In') }}</label>
+                        <input type="date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">{{ t('Check-Out') }}</label>
+                        <input type="date" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 btn-lg fw-bold">{{ t('Confirm Instant Booking') }}</button>
+                </form>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h4 class="fw-bold mb-3">{{ t('Guest Reviews') }}</h4>
+                
+                <form class="mb-4">
+                    <div class="mb-2">
+                        <select class="form-select form-select-sm" required>
+                            <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                            <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                            <option value="3">⭐⭐⭐ (3/5)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-sm" placeholder="{{ t('Share your thoughts...') }}" required>
+                        <button class="btn btn-dark btn-sm" type="submit">{{ t('Post') }}</button>
+                    </div>
+                </form>
+
+                <div class="review-stack">
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong class="small">Alex M.</strong>
+                            <span class="text-warning small">⭐⭐⭐⭐⭐</span>
+                        </div>
+                        <p class="text-muted small mb-0">{{ t('Flawless stay! The real-time booking confirmation worked instantly.') }}</p>
+                    </div>
+                    <div class="pb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong class="small">Linda W.</strong>
+                            <span class="text-warning small">⭐⭐⭐⭐</span>
+                        </div>
+                        <p class="text-muted small mb-0">{{ t('Very clean, highly recommended interface and great staff execution.') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

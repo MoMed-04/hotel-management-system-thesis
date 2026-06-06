@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* THE NEW APPROACH: A Dedicated CSS Variable Engine */
+    :root {
+        --chat-main-bg: #ffffff;
+        --chat-tray-bg: #f8f9fa;
+        --chat-border: #e2e8f0;
+        --chat-text: #1e293b;
+        --chat-ai-bubble: #f1f5f9;
+        --chat-input-bg: #ffffff;
+    }
+
+    [data-theme="dark"] {
+        --chat-main-bg: #1e293b;
+        --chat-tray-bg: #0f172a;
+        --chat-border: #334155;
+        --chat-text: #f8f9fa;
+        --chat-ai-bubble: #334155;
+        --chat-input-bg: #0f172a;
+    }
+
+    /* Apply the variables smoothly */
+    .chat-wrapper {
+        background-color: var(--chat-main-bg);
+        border: 1px solid var(--chat-border);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    .chat-tray {
+        background-color: var(--chat-tray-bg);
+        border-color: var(--chat-border) !important;
+        transition: background-color 0.3s ease;
+    }
+    .chat-ai-response {
+        background-color: var(--chat-ai-bubble);
+        border: 1px solid var(--chat-border);
+        transition: background-color 0.3s ease;
+    }
+    .chat-ai-response p {
+        color: var(--chat-text) !important;
+    }
+    .chat-header-title {
+        color: var(--chat-text) !important;
+    }
+    .chat-input-field {
+        background-color: var(--chat-input-bg) !important;
+        color: var(--chat-text) !important;
+        border: 1px solid var(--chat-border) !important;
+    }
+    .chat-input-field::placeholder {
+        color: #94a3b8 !important;
+    }
+</style>
+
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <div class="card chat-wrapper shadow rounded-4 overflow-hidden">
+                
+                <div class="card-header chat-tray p-3 d-flex align-items-center justify-content-between border-bottom">
+                    <div class="d-flex align-items-center">
+                        <div class="position-relative me-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                <i class="fa-solid fa-headset"></i>
+                            </div>
+                            <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-dark rounded-circle"></span>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 chat-header-title">{{ t('SaaS Live Support Desk') }}</h5>
+                            <small class="text-success fw-bold">{{ t('Online & Responsive') }}</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-secondary">System Agent</span>
+                </div>
+
+                <div class="card-body p-4" id="chatBox" style="height: 450px; overflow-y: auto;">
+                    <div class="d-flex mb-4 align-items-start">
+                        <div class="chat-ai-response p-3 rounded-3 shadow-sm" style="max-width: 75%;">
+                            <p class="small mb-1 fw-bold text-primary">{{ t('Front Desk Agent') }}</p>
+                            <p class="mb-0 small">Hello Mohamed! Thank you for contacting customer service. How can I assist you with your hotel booking today?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer chat-tray p-3 border-top">
+                    <form id="chatForm" class="d-flex gap-2">
+                        <input type="text" id="chatInput" class="form-control chat-input-field" placeholder="{{ t('Type your prompt message here...') }}" autocomplete="off" required>
+                        <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('chatForm').addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        let input = document.getElementById('chatInput');
+        let message = input.value.trim();
+        
+        if(message) {
+            let chatBox = document.getElementById('chatBox');
+            
+            // Your Message (Always stays primary blue)
+            chatBox.innerHTML += `
+            <div class="d-flex mb-4 justify-content-end align-items-start">
+                <div class="bg-primary text-white p-3 rounded-3 shadow-sm" style="max-width: 75%;">
+                    <p class="mb-0 small text-white">${message}</p>
+                </div>
+            </div>`;
+            
+            input.value = ''; 
+            chatBox.scrollTop = chatBox.scrollHeight; 
+            
+            // AI Reply (Uses the new CSS variable class)
+            setTimeout(() => {
+                chatBox.innerHTML += `
+                <div class="d-flex mb-4 align-items-start">
+                    <div class="chat-ai-response p-3 rounded-3 shadow-sm" style="max-width: 75%;">
+                        <p class="small mb-1 fw-bold text-primary">{{ t('Front Desk Agent') }}</p>
+                        <p class="mb-0 small">I can certainly help you with that. Let me check the system records for you right now.</p>
+                    </div>
+                </div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 1500);
+        }
+    });
+</script>
+{% endblock %}

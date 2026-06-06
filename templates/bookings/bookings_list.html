@@ -31,7 +31,14 @@
                 {% for b in bookings %}
                 <tr>
                     <td class="ps-4" style="color: var(--text-muted);">#{{ b.id }}</td>
-                    <td class="fw-bold" style="color: var(--text-main);">{{ b.full_name }}</td>
+                    
+                    <td>
+                        <a href="javascript:void(0)" class="fw-bold text-decoration-none" style="color: var(--primary);"
+                           onclick="viewGuest('{{ b.full_name }}', '{{ b.phone }}', '{{ b.email }}')">
+                           {{ b.full_name }}
+                        </a>
+                    </td>
+                    
                     <td style="color: var(--text-muted);"><i class="fas fa-door-closed me-1"></i> {{ b.room_number }}</td>
                     <td style="color: var(--text-muted);">{{ b.check_in_date }}</td>
                     <td style="color: var(--text-muted);">{{ b.check_out_date }}</td>
@@ -43,7 +50,7 @@
                         {% elif b.status == 'Completed' %}
                             <span class="badge badge-saas bg-success-soft"><i class="fas fa-check-double me-1"></i> {{ t('Completed') }}</span>
                         {% else %}
-                            <span class="badge badge-saas bg-danger-soft"><i class="fas fa-ban me-1"></i> {{ b.status }}</span>
+                            <span class="badge badge-saas bg-danger-soft"><i class="fas fa-ban me-1"></i> {{ t('Refunded') }}</span>
                         {% endif %}
                     </td>
                     <td class="pe-4 text-end">
@@ -51,7 +58,7 @@
                             <form action="{{ url_for('bookings.change_status', booking_id=b.id, new_status='Checked-In') }}" method="POST" style="display:inline;">
                                 <button type="submit" class="btn btn-sm border-0" title="Check In" style="background: transparent; color: var(--success);"><i class="fas fa-sign-in-alt fs-5"></i></button>
                             </form>
-                            <form action="{{ url_for('bookings.change_status', booking_id=b.id, new_status='Cancelled') }}" method="POST" style="display:inline;">
+                            <form action="{{ url_for('bookings.change_status', booking_id=b.id, new_status='Refunded') }}" method="POST" style="display:inline;">
                                 <button type="submit" class="btn btn-sm border-0" title="{{ t('Cancel') }}" style="background: transparent; color: var(--danger);"><i class="fas fa-times fs-5"></i></button>
                             </form>
                         {% elif b.status == 'Checked-In' %}
@@ -68,4 +75,20 @@
         </table>
     </div>
 </div>
+
+<script>
+function viewGuest(name, phone, email) {
+    Swal.fire({
+        title: '{{ t("Guest Profile") }}',
+        html: `
+            <div class="text-start mt-3">
+                <p><strong>{{ t("Name") }}:</strong> ${name}</p>
+                <p><strong>{{ t("Phone") }}:</strong> ${phone || 'N/A'}</p>
+                <p><strong>{{ t("Email") }}:</strong> ${email || 'N/A'}</p>
+            </div>
+        `,
+        icon: 'info'
+    });
+}
+</script>
 {% endblock %}

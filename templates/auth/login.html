@@ -2,30 +2,57 @@
 
 {% block login_content %}
 <style>
-    /* Specific styling just for the login background */
-    body { background-color: #2c3e50; display: flex; align-items: center; justify-content: center; height: 100vh; }
+    body { background-color: #2c3e50; display: flex; align-items: center; justify-content: center; height: 100vh; position: relative; }
     .login-card { width: 100%; max-width: 400px; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); background: white; }
     .brand-logo { font-size: 3rem; color: #3498db; text-align: center; margin-bottom: 10px; }
 </style>
 
+<div class="position-absolute top-0 end-0 p-4">
+    <div class="btn-group shadow-sm">
+        <a href="/set_lang/en" class="btn btn-sm btn-light fw-bold {% if session.get('lang') != 'zh' %}active border-primary text-primary{% endif %}">EN</a>
+        <a href="/set_lang/zh" class="btn btn-sm btn-light fw-bold {% if session.get('lang') == 'zh' %}active border-primary text-primary{% endif %}">中文</a>
+    </div>
+</div>
+
 <div class="login-card">
     <div class="brand-logo"><i class="fas fa-hotel"></i></div>
-    <h3 class="text-center mb-4 text-dark font-weight-bold">Hotel System</h3>
+    <h3 class="text-center mb-4 text-dark font-weight-bold">{{ t('Hotel System') }}</h3>
     
     {% if error %}
-    <div class="alert alert-danger shadow-sm"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+    <div class="alert alert-danger shadow-sm"><i class="fas fa-exclamation-circle"></i> {{ t(error) }}</div>
     {% endif %}
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-success shadow-sm"><i class="fas fa-check-circle"></i> {{ t(message) }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
     <form method="POST">
         <div class="mb-3">
-            <label class="text-muted"><i class="fas fa-user"></i> Username</label>
+            <label class="text-muted"><i class="fas fa-id-badge"></i> {{ t('Select Role') }}</label>
+            <select name="role" class="form-select form-control-lg" required style="font-size: 1.25rem; height: calc(1.5em + 1rem + 2px);">
+                <option value="Guest">{{ t('Guest / Customer') }}</option>
+                <option value="Admin">{{ t('Administrator / Staff') }}</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="text-muted"><i class="fas fa-user"></i> {{ t('Username') }}</label>
             <input type="text" name="username" class="form-control form-control-lg" required autofocus>
         </div>
         <div class="mb-4">
-            <label class="text-muted"><i class="fas fa-lock"></i> Password</label>
+            <label class="text-muted"><i class="fas fa-lock"></i> {{ t('Password') }}</label>
             <input type="password" name="password" class="form-control form-control-lg" required>
         </div>
-        <button type="submit" class="btn btn-primary btn-lg w-100"><i class="fas fa-sign-in-alt"></i> Log In</button>
+        <button type="submit" class="btn btn-primary btn-lg w-100"><i class="fas fa-sign-in-alt"></i> {{ t('Log In') }}</button>
+        
+        <div class="text-center mt-4">
+            <span class="text-muted">{{ t("Don't have a guest account?") }}</span> 
+            <a href="{{ url_for('auth.register') }}" class="text-decoration-none fw-bold text-success">{{ t('Register Here') }}</a>
+        </div>
     </form>
 </div>
 {% endblock %}

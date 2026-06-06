@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold m-0" style="color: var(--text-main);">
+            <i class="fas fa-star text-warning me-2"></i>{{ t('Real Guest Experiences') }}
+        </h2>
+        <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
+            <i class="fas fa-pen me-2"></i>{{ t('Write a Review') }}
+        </button>
+    </div>
+
+    <div class="row g-4" id="reviewsContainer">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border) !important;">
+                <img src="https://images.unsplash.com/photo-1542314831-c6a4d27ce605?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="card-img-top" style="height: 250px; object-fit: cover; border-top-left-radius: 1rem; border-top-right-radius: 1rem;" alt="Guest Photo">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">AM</div>
+                            <div>
+                                <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Alex Mercer</h6>
+                                <small class="text-muted">{{ t('Stayed in Executive Suite') }}</small>
+                            </div>
+                        </div>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-main); opacity: 0.9;">"{{ t('Absolutely stunning view from the balcony. The real-time booking engine was flawless and the room was exactly as pictured.') }}"</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border) !important;">
+                <img src="https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="card-img-top" style="height: 250px; object-fit: cover; border-top-left-radius: 1rem; border-top-right-radius: 1rem;" alt="Breakfast Photo">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">LW</div>
+                            <div>
+                                <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Linda W.</h6>
+                                <small class="text-muted">{{ t('Stayed in Deluxe Single') }}</small>
+                            </div>
+                        </div>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-main); opacity: 0.9;">"{{ t('The customer service chat module was incredibly responsive. Breakfast in bed was the highlight of our trip!') }}"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="writeReviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-secondary, #fff); border: 1px solid var(--border);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" style="color: var(--text-main);"><i class="fas fa-pen text-primary me-2"></i>{{ t('Submit Your Feedback') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(var(--invert-icon, 0));"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="color: var(--text-main);">{{ t('Rate Your Stay') }}</label>
+                        <select class="form-select" id="reviewStars">
+                            <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+                            <option value="4">⭐⭐⭐⭐ (Very Good)</option>
+                            <option value="3">⭐⭐⭐ (Average)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="color: var(--text-main);">{{ t('Which room did you stay in?') }}</label>
+                        <select class="form-select" id="reviewRoom">
+                            <option>Room 101 (Deluxe Single)</option>
+                            <option>Room 201 (Executive Suite)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="color: var(--text-main);">{{ t('Your Review') }}</label>
+                        <textarea id="reviewText" class="form-control" rows="4" placeholder="{{ t('Tell us about your experience...') }}"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('Cancel') }}</button>
+                <button type="button" id="submitReviewBtn" class="btn btn-primary fw-bold" data-bs-dismiss="modal">{{ t('Post Review') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('submitReviewBtn').addEventListener('click', function() {
+        // Grab the text you typed
+        const userText = document.getElementById('reviewText').value;
+        const selectedRoom = document.getElementById('reviewRoom').value;
+        
+        // If it's empty, do nothing
+        if(!userText.trim()) return;
+
+        // Build the HTML for the new review card
+        const newCardHTML = `
+        <div class="col-md-6" style="animation: fadeIn 0.5s;">
+            <div class="card border-0 shadow-sm rounded-4 h-100" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border) !important; border-left: 5px solid #0d6efd !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">{{ session.get('username')[0] | upper }}</div>
+                            <div>
+                                <h6 class="mb-0 fw-bold" style="color: var(--text-main);">{{ session.get('username') }}</h6>
+                                <small class="text-muted">{{ t('Stayed in ') }} ${selectedRoom}</small>
+                            </div>
+                        </div>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <p class="fst-italic" style="color: var(--text-main); opacity: 0.9;">"${userText}"</p>
+                </div>
+            </div>
+        </div>`;
+
+        // Inject it right at the top of the reviews grid
+        document.getElementById('reviewsContainer').insertAdjacentHTML('afterbegin', newCardHTML);
+        
+        // Clear the text box for next time
+        document.getElementById('reviewText').value = '';
+        
+        // Show success popup
+        Swal.fire({
+            title: '{{ t("Review Posted!") }}',
+            text: '{{ t("Thank you for sharing your experience with us.") }}',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    });
+</script>
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
