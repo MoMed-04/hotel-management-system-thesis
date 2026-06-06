@@ -138,3 +138,33 @@ def api_refund_booking():
         print("====== DATABASE REFUND ERROR ======")
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@guest_bp.route('/api/search_rooms', methods=['POST'])
+def api_search_rooms():
+    data = request.json
+    check_in = data.get('in')
+    check_out = data.get('out')
+
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        cursor.execute("""
+            SELECT room_type, COUNT(*) as available_count,
+                   MIN(price) as price
+            FROM rooms
+            WHERE id NOT IN (
+                SELECT room_id FROM bookings
+                WHERE (status IS NULL OR status NOT IN ('Refunded', 'Cancelled'))
+                AND (check_in_date < ? AND check_out_date > ?)
+            )
+            GROUP BY room_type
+        """, (check_out, check_in))
+
+        rooms = cursor.fetchall()
+        result = [{'room_type': r[0], 'available': r[1], 'price': r[2]} for r in rooms]
+        return jsonify({'success': True, 'rooms': result})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500

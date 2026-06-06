@@ -27,7 +27,7 @@
 
 <div class="container">
     <div class="card theme-card search-bar-card p-4 mb-5 rounded-4 border-0">
-        <form class="row g-3 align-items-end" onsubmit="event.preventDefault(); Swal.fire('Searching...', 'Connecting to database.', 'info');">
+        <form class="row g-3 align-items-end" onsubmit="event.preventDefault(); filterRooms();">
             <div class="col-md-4">
                 <label class="form-label fw-bold" style="color: var(--text-main);">{{ t('Check-In Date') }}</label>
                 <input type="date" id="searchIn" class="form-control form-control-lg" required>
@@ -58,7 +58,6 @@
                     </div>
                     <h4 class="text-primary fw-bold mb-3">$80 <small class="text-muted fs-6">/ night</small></h4>
                     <p class="card-text mb-4" style="color: var(--text-main); opacity: 0.8;">{{ t('Cozy single room with a city view, premium minibar, and high-speed Wi-Fi.') }}</p>
-                    
                     <button onclick="instantBook('Single', '{{ t('Deluxe Single') }}', 80)" class="btn btn-primary w-100 fw-bold py-2 mt-auto"><i class="fas fa-bolt me-2"></i>{{ t('Book Now') }}</button>
                 </div>
             </div>
@@ -66,14 +65,13 @@
 
         <div class="col-md-4">
             <div class="card h-100 theme-card shadow-sm rounded-4 overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1560067174-05a3a806c9e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="card-img-top" alt="Double Room" style="height: 200px; object-fit: cover;">
+                <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=800&q=80" class="card-img-top" alt="Double Room" style="height: 200px; object-fit: cover;">
                 <div class="card-body p-4 d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h5 class="card-title fw-bold mb-0" style="color: var(--text-main);">{{ t('Premium Double') }}</h5>
                     </div>
                     <h4 class="text-primary fw-bold mb-3">$140 <small class="text-muted fs-6">/ night</small></h4>
                     <p class="card-text mb-4" style="color: var(--text-main); opacity: 0.8;">{{ t('Spacious double room perfect for couples, featuring a king-size bed and smart TV.') }}</p>
-                    
                     <button onclick="instantBook('Double', '{{ t('Premium Double') }}', 140)" class="btn btn-primary w-100 fw-bold py-2 mt-auto"><i class="fas fa-bolt me-2"></i>{{ t('Book Now') }}</button>
                 </div>
             </div>
@@ -88,7 +86,6 @@
                     </div>
                     <h4 class="text-primary fw-bold mb-3">$250 <small class="text-muted fs-6">/ night</small></h4>
                     <p class="card-text mb-4" style="color: var(--text-main); opacity: 0.8;">{{ t('Luxury suite with a private balcony, ocean view, and 24/7 room service.') }}</p>
-                    
                     <button onclick="instantBook('Suite', '{{ t('Executive Suite') }}', 250)" class="btn btn-primary w-100 fw-bold py-2 mt-auto"><i class="fas fa-bolt me-2"></i>{{ t('Book Now') }}</button>
                 </div>
             </div>
@@ -98,15 +95,92 @@
 </div>
 
 <script>
-    // ==========================================
-    // BOOKING ENGINE (Now immune to translation bugs!)
-    // ==========================================
+    // Set default dates (today and tomorrow)
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    document.getElementById('searchIn').value = today;
+    document.getElementById('searchOut').value = tomorrow;
+
+    function filterRooms() {
+        const inDate = document.getElementById('searchIn').value;
+        const outDate = document.getElementById('searchOut').value;
+
+        if (!inDate || !outDate) {
+            Swal.fire({ title: '{{ t("Missing Dates") }}', text: '{{ t("Please select both dates.") }}', icon: 'warning' });
+            return;
+        }
+        if (outDate <= inDate) {
+            Swal.fire({ title: '{{ t("Invalid Dates") }}', text: '{{ t("Check-out must be after check-in.") }}', icon: 'warning' });
+            return;
+        }
+
+        // Show loading
+        Swal.fire({ title: '{{ t("Searching...") }}', text: '{{ t("Checking availability...") }}', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        fetch('/guest/api/search_rooms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ in: inDate, out: outDate })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) throw new Error(data.error);
+
+            if (data.rooms.length === 0) {
+                Swal.fire({ title: '{{ t("No Rooms Available") }}', text: '{{ t("Sorry, no rooms are available for these dates.") }}', icon: 'error' });
+                return;
+            }
+
+            const icons = { 'Single': '🛏️', 'Double': '🛏️🛏️', 'Suite': '👑' };
+            const names = { 'Single': '{{ t("Deluxe Single") }}', 'Double': '{{ t("Premium Double") }}', 'Suite': '{{ t("Executive Suite") }}' };
+
+            let html = `<p class="text-muted mb-3">{{ t("Available for") }} <strong>${inDate}</strong> → <strong>${outDate}</strong></p><div class="row g-3">`;
+
+            data.rooms.forEach(room => {
+                const nights = Math.ceil((new Date(outDate) - new Date(inDate)) / (1000 * 3600 * 24));
+                const total = (room.price * nights).toFixed(2);
+                html += `
+                    <div class="col-12">
+                        <div class="border rounded-3 p-3 d-flex justify-content-between align-items-center">
+                            <div class="text-start">
+                                <h6 class="mb-1 fw-bold">${icons[room.room_type] || '🏨'} ${names[room.room_type] || room.room_type}</h6>
+                                <small class="text-muted">${room.available} room(s) left · $${room.price}/night · ${nights} night(s)</small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-primary fs-5">$${total}</div>
+                                <button class="btn btn-success btn-sm mt-1" onclick="Swal.close(); instantBook('${room.room_type}', '${names[room.room_type] || room.room_type}', ${room.price})">
+                                    ⚡ {{ t("Book Now") }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            html += '</div>';
+
+            Swal.fire({
+                title: '{{ t("Available Rooms") }} ✅',
+                html: html,
+                showConfirmButton: false,
+                showCloseButton: true,
+                width: '600px'
+            });
+        })
+        .catch(err => {
+            Swal.fire({ title: '{{ t("Error") }}', text: err.message, icon: 'error' });
+        });
+    }
+
     function instantBook(roomTypeCode, roomDisplayName, price) {
         let inDate = document.getElementById('searchIn').value;
         let outDate = document.getElementById('searchOut').value;
 
-        if(!inDate || !outDate) {
+        if (!inDate || !outDate) {
             Swal.fire({ title: '{{ t("Missing Dates") }}', text: '{{ t("Please select a Check-In and Check-Out date at the top first.") }}', icon: 'warning' });
+            return;
+        }
+        if (outDate <= inDate) {
+            Swal.fire({ title: '{{ t("Invalid Dates") }}', text: '{{ t("Check-out must be after check-in.") }}', icon: 'warning' });
             return;
         }
 
@@ -118,35 +192,33 @@
             confirmButtonText: '{{ t("Confirm & Pay") }}',
             confirmButtonColor: '#198754'
         }).then((result) => {
-            if(result.isConfirmed) {
+            if (result.isConfirmed) {
                 const date1 = new Date(inDate);
                 const date2 = new Date(outDate);
-                const timeDiff = Math.abs(date2.getTime() - date1.getTime());
-                let diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
+                let diffDays = Math.ceil((date2 - date1) / (1000 * 3600 * 24));
                 if (diffDays === 0) diffDays = 1;
                 let totalCost = (price * diffDays).toFixed(2);
-                
-                // SEND TO PYTHON DATABASE FIRST
+
                 fetch('/guest/api/book_room', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        room_type: roomTypeCode,     // Python reads this (Always English)
-                        room: roomDisplayName,       // UI reads this (English or Chinese)
+                        room_type: roomTypeCode,
+                        room: roomDisplayName,
                         in: inDate, out: outDate, cost: totalCost
                     })
                 })
                 .then(async response => {
                     const isJson = response.headers.get('content-type')?.includes('application/json');
                     const data = isJson ? await response.json() : null;
-                    if (!response.ok || !data) throw new Error(data ? data.error : 'Python crashed! Check the terminal.');
+                    if (!response.ok || !data) throw new Error(data ? data.error : 'Server error.');
                     return data;
                 })
                 .then(data => {
-                    if(data.success) {
+                    if (data.success) {
                         let visualOrderId = '#BK-' + String(data.real_id).padStart(4, '0');
                         let newBooking = {
-                            id: visualOrderId, real_id: data.real_id, 
+                            id: visualOrderId, real_id: data.real_id,
                             room: roomDisplayName, in: inDate, out: outDate,
                             cost: '$' + totalCost, status: 'Confirmed'
                         };
@@ -154,7 +226,7 @@
                         const username = "{{ session.get('username') }}";
                         const dbKey = "guest_bookings_" + username;
                         let bookings = JSON.parse(localStorage.getItem(dbKey)) || [];
-                        bookings.unshift(newBooking); 
+                        bookings.unshift(newBooking);
                         localStorage.setItem(dbKey, JSON.stringify(bookings));
 
                         Swal.fire({
