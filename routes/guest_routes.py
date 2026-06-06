@@ -191,50 +191,51 @@ def api_chat():
         import urllib.request
         import urllib.error
         import json as jsonlib
-        import ssl 
+        import ssl # 🚨 Keeps your local VPN working!
 
-        # 🚨 PASTE YOUR REAL KEY HERE 🚨
+        # 🚨 PASTE YOUR BRAND NEW KEY HERE 🚨
         api_key = 'PASTE_YOUR_REAL_KEY_HERE'
 
-        system_context = f"""You are an exclusive, intelligent front desk assistant for our hotel. 
-The guest's name is {username}. Always greet them by name.
+        # 🚨 THE FIXED BRAIN: It will actually answer questions now! 🚨
+        prompt = f"""You are the intelligent front desk assistant for the SaaS Hotel.
+The guest chatting with you right now is named {username}.
 
-STRICT INSTRUCTIONS:
-1. NEVER hallucinate or make up room types. You must ONLY use the following live database information:
-{room_info}
-2. If the guest asks how to book a room, tell them to "Please click the 'Hotel / Room Search' tab at the top of your dashboard to check live dates and book instantly."
-3. Hotel Policies: Check-in is 2:00 PM, Check-out is 12:00 PM. Free WiFi (Network: SaaS_Guest, Pass: Stay2026).
-4. Keep your response under 3 short sentences. Be polite and concise.
+LIVE DATABASE INFO (Rooms Available):
+{room_info if room_info else "Currently checking availability..."}
 
-Guest message: """
+HOTEL POLICIES:
+- Check-in: 2:00 PM | Check-out: 12:00 PM
+- Free WiFi: Network 'SaaS_Guest', Password 'Stay2026'
+- To book a room, strictly tell the guest to click the 'Hotel / Room Search' tab at the top of their dashboard.
+
+GUEST'S MESSAGE: "{message}"
+
+YOUR TASK: 
+Reply directly to the guest's message. Be friendly, helpful, and keep it under 3 sentences. You MUST answer their specific question using the live database info provided above."""
 
         payload = jsonlib.dumps({
             "contents": [
                 {
                     "parts": [
-                        {"text": system_context + message}
+                        {"text": prompt}
                     ]
                 }
             ],
             "generationConfig": {
-                "maxOutputTokens": 150,
-                "temperature": 0.3
+                "maxOutputTokens": 250,
+                "temperature": 0.7 # Raised back up so it stops acting like a robot
             }
         }).encode('utf-8')
 
-        # 🚨 THE ONLY FIX WE NEEDED: 🚨
-        # Swapped to gemini-2.5-flash (The active 2026 model!)
-        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
 
         req = urllib.request.Request(
             url,
             data=payload,
-            headers={
-                'Content-Type': 'application/json',
-                'x-goog-api-key': api_key
-            }
+            headers={'Content-Type': 'application/json'}
         )
 
+        # 🚨 THE MAGIC SHIELD: Bypasses the local SSL firewall block
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
