@@ -194,7 +194,7 @@ def api_chat():
         import ssl # 🚨 Keeps your local VPN working!
 
         # 🚨 PASTE YOUR BRAND NEW KEY HERE 🚨
-        api_key = 'PASTE_YOUR_REAL_KEY_HERE'
+        api_key = 'KEY_HIDDEN_FOR_GITHUB'
 
         # 🚨 THE FIXED BRAIN: It will actually answer questions now! 🚨
         prompt = f"""You are the intelligent front desk assistant for the SaaS Hotel.
