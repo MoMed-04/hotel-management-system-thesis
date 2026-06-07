@@ -64,6 +64,7 @@ def api_stats():
     upcoming = cursor.fetchone()[0]
     return jsonify({"system": "HMS API v1", "timestamp": datetime.now().isoformat(), "status": "success", "data": {"total_rooms": total_rooms, "upcoming_checkins": upcoming}})
 
+
 # ==========================================
 # STAFF MANAGEMENT DASHBOARD ROUTES
 # ==========================================
@@ -121,6 +122,7 @@ def delete_staff():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 # ==========================================
 # SETTINGS & BACKUP ROUTES
 # ==========================================
@@ -144,3 +146,86 @@ def backup_database():
 def save_settings():
     if session.get('role') != 'Admin': return jsonify({'success': False}), 403
     return jsonify({'success': True})
+
+
+# ==========================================
+# ADMIN API: FETCH GUEST CHAT LOGS
+# ==========================================
+@dashboard_bp.route('/api/get_chats', methods=['GET'])
+def api_get_chats():
+    if session.get('role') not in ['Admin', 'Staff']: 
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        
+        # 1. CRITICAL FIX: Check if the table exists first so it doesn't crash
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='chat_logs'")
+        if not cursor.fetchone():
+            return jsonify({'success': True, 'chats': []})
+
+        # 2. Pull the newest messages (limit to 50 so it doesn't lag the page)
+        cursor.execute("""
+            SELECT username, guest_message, bot_reply, datetime(created_at, 'localtime') 
+            FROM chat_logs 
+            ORDER BY created_at DESC 
+            LIMIT 50
+        """)
+        logs = cursor.fetchall()
+        
+        chat_data = [{'guest': r[0], 'message': r[1], 'reply': r[2], 'time': r[3]} for r in logs]
+        return jsonify({'success': True, 'chats': chat_data})
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    # ==========================================
+# ADMIN SUPPORT INBOX (Dedicated Page)
+# ==========================================
+@dashboard_bp.route('/support')
+def support_inbox():
+    if session.get('role') not in ['Admin', 'Staff']: 
+        return redirect(url_for('dashboard.index'))
+    
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        # Fetch all chats, bringing the "Unread" ones to the top
+        cursor.execute("""
+            SELECT id, username, guest_message, bot_reply, status, datetime(created_at, 'localtime') 
+            FROM chat_logs 
+            ORDER BY 
+                CASE WHEN status = 'Unread' THEN 1 ELSE 2 END,
+                created_at DESC
+        """)
+        chats = cursor.fetchall()
+    except Exception as e:
+        chats = []
+        
+    return render_template('dashboard/support.html', chats=chats)
+
+@dashboard_bp.route('/api/support/reply', methods=['POST'])
+def support_reply():
+    if session.get('role') not in ['Admin', 'Staff']: 
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+        
+    data = request.json
+    chat_id = data.get('chat_id')
+    admin_reply = data.get('reply')
+    
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        # Mark as resolved and append the human reply to the record
+        cursor.execute("""
+            UPDATE chat_logs 
+            SET status = 'Resolved', 
+                bot_reply = bot_reply || '\n\n[Human Admin]: ' || ? 
+            WHERE id = ?
+        """, (admin_reply, chat_id))
+        db.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500

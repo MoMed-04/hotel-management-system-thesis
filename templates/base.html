@@ -59,6 +59,11 @@
                 </a>
             </li>
             <li>
+                <a href="{{ url_for('dashboard.support_inbox') }}" class="{% if 'support' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-inbox"></i> {{ t('Support Inbox') }}
+                </a>
+            </li>
+            <li>
                 <a href="{{ url_for('dashboard.settings') }}" class="{% if 'settings' in request.endpoint %}active{% endif %}">
                     <i class="fas fa-cogs"></i> {{ t('System Settings') }}
                 </a>
@@ -100,6 +105,7 @@
                             {% if session.get('role') == 'Guest' %}
                             <li><a class="dropdown-item py-2" href="{{ url_for('guest.orders') }}"><i class="fas fa-box text-primary me-2"></i>{{ t('My Orders') }}</a></li>
                             <li><a class="dropdown-item py-2" href="{{ url_for('guest.account') }}"><i class="fas fa-id-card text-success me-2"></i>{{ t('Account Settings') }}</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ url_for('guest.tickets') }}"><i class="fas fa-ticket-alt text-danger me-2"></i>{{ t('My Support Tickets') }}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             {% endif %}
                             
@@ -131,6 +137,10 @@
             
             <a href="/guest/chat" class="text-decoration-none fw-bold hover-scale" style="color: var(--text-main);">
                 <i class="fas fa-comments me-2 text-info"></i>{{ t('Live Support') }}
+            </a>
+
+            <a href="/guest/tickets" class="text-decoration-none fw-bold hover-scale" style="color: var(--text-main);">
+                <i class="fas fa-ticket-alt me-2 text-danger"></i>{{ t('My Support Tickets') }}
             </a>
         </div>
 

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h3 class="fw-bold mb-1" style="color: var(--text-main);">Guest Support Inbox</h3>
+        <p style="color: var(--text-muted);">Manage inquiries and reply to guests.</p>
+    </div>
+</div>
+
+<div class="card p-0">
+    <div class="table-responsive">
+        <table class="table mb-0 table-hover align-middle">
+            <thead style="background-color: #f8f9fa;">
+                <tr>
+                    <th class="ps-4">Status</th>
+                    <th>Guest Name</th>
+                    <th>Message</th>
+                    <th>Current Reply</th>
+                    <th>Time</th>
+                    <th class="text-end pe-4">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if chats %}
+                    {% for chat in chats %}
+                    <tr>
+                        <td class="ps-4">
+                            {% if chat[4] == 'Unread' %}
+                                <span class="badge bg-warning text-dark">Needs Reply</span>
+                            {% else %}
+                                <span class="badge bg-success">Resolved</span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold" style="color: var(--text-main);">{{ chat[1] }}</td>
+                        <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            "{{ chat[2] }}"
+                        </td>
+                        <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted);">
+                            {{ chat[3] }}
+                        </td>
+                        <td style="color: var(--text-muted); font-size: 0.85rem;">{{ chat[5] }}</td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm btn-primary" onclick="openReplyModal('{{ chat[0] }}', '{{ chat[1] }}', '{{ chat[2]|escape }}')">
+                                <i class="fas fa-reply"></i> Reply
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">No support tickets found.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="replyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reply to <span id="modalGuestName" class="fw-bold"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="p-3 mb-3" style="background-color: #f4f6f8; border-radius: 8px;">
+                    <small class="text-muted text-uppercase fw-bold">Guest Message:</small>
+                    <p id="modalGuestMessage" class="mb-0 mt-1" style="color: #333;"></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label fw-bold">Your Reply</label>
+                    <textarea id="adminReplyText" class="form-control" rows="4" placeholder="Type your response here..."></textarea>
+                </div>
+                <input type="hidden" id="modalChatId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendReply()">Send Reply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openReplyModal(id, name, message) {
+        document.getElementById('modalChatId').value = id;
+        document.getElementById('modalGuestName').textContent = name;
+        document.getElementById('modalGuestMessage').textContent = '"' + message + '"';
+        document.getElementById('adminReplyText').value = '';
+        
+        var modal = new bootstrap.Modal(document.getElementById('replyModal'));
+        modal.show();
+    }
+
+    function sendReply() {
+        const chatId = document.getElementById('modalChatId').value;
+        const replyText = document.getElementById('adminReplyText').value;
+
+        if (!replyText.trim()) {
+            alert('Please type a reply first.');
+            return;
+        }
+
+        // Make sure prefix matches your browser URL (/admin vs /dashboard)
+        fetch('/api/support/reply', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ chat_id: chatId, reply: replyText })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Reload the page to show the updated status
+            } else {
+                alert('Error: ' + data.error);
+            }
+        });
+    }
+</script>
+{% endblock %}

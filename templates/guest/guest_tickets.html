@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-4">
+    <h3 class="fw-bold mb-1" style="color: var(--text-main);">My Support Tickets</h3>
+    <p style="color: var(--text-muted);">View the status of your inquiries and responses from our team.</p>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card p-0 shadow-sm border-0">
+            <div class="card-body" id="tickets-container">
+                <div class="text-center py-5 text-muted">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <p>Loading your tickets...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/guest/api/my_tickets')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('tickets-container');
+            
+            if (data.success) {
+                if (data.tickets.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-inbox fs-1 mb-3" style="color: #cbd5e1;"></i>
+                            <p class="mb-0">You have no support tickets yet.</p>
+                            <small>If you need help, click the Live Support tab!</small>
+                        </div>`;
+                    return;
+                }
+
+                let html = '<div class="accordion" id="ticketsAccordion">';
+                
+                data.tickets.forEach((ticket, index) => {
+                    // Check if it's resolved or still waiting/AI answered
+                    let isResolved = ticket.status === 'Resolved';
+                    let badge = isResolved 
+                        ? '<span class="badge bg-success">Resolved by Staff</span>' 
+                        : '<span class="badge bg-secondary">System / Pending</span>';
+                    
+                    // Format the reply text to handle the line breaks nicely
+                    let replyText = ticket.reply.replace(/\n/g, '<br>');
+
+                    html += `
+                        <div class="accordion-item mb-3" style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+                            <h2 class="accordion-header" id="heading${index}">
+                                <button class="accordion-button ${index !== 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}" style="background-color: var(--bg-secondary); color: var(--text-main);">
+                                    <div class="d-flex justify-content-between align-items-center w-100 pe-3">
+                                        <div>
+                                            <strong style="font-size: 1.05rem;"><i class="fas fa-comment-dots me-2 text-primary"></i>"${ticket.message}"</strong>
+                                            <div class="text-muted mt-1" style="font-size: 0.8rem;"><i class="far fa-clock me-1"></i>${ticket.time}</div>
+                                        </div>
+                                        <div>${badge}</div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse${index}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" data-bs-parent="#ticketsAccordion">
+                                <div class="accordion-body" style="background-color: var(--bg-main);">
+                                    <div class="p-4" style="background-color: rgba(67, 24, 255, 0.05); border-left: 4px solid var(--primary); border-radius: 4px;">
+                                        <p class="mb-0" style="color: var(--text-main); line-height: 1.6;">${replyText}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle fs-2 mb-2"></i><br>Failed to load tickets.</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching tickets:', error);
+            document.getElementById('tickets-container').innerHTML = '<div class="text-center py-5 text-danger">Server connection error.</div>';
+        });
+});
+</script>
+{% endblock %}
