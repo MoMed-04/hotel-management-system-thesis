@@ -60,15 +60,15 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold small" style="color: var(--text-main);">{{ t('Full Name') }}</label>
-                            <input type="text" id="fullNameInput" class="form-control form-control-lg" value="Mohamed Matrouh" required>
+                            <input type="text" id="fullNameInput" class="form-control form-control-lg" value="{{ full_name }}" placeholder="Enter your full name" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold small" style="color: var(--text-main);">{{ t('Email Address') }}</label>
-                            <input type="email" id="emailInput" class="form-control form-control-lg" value="guest@example.com" required>
+                            <input type="email" id="emailInput" class="form-control form-control-lg" value="{{ email }}" placeholder="Enter your email" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold small" style="color: var(--text-main);">{{ t('Phone Number') }}</label>
-                            <input type="text" id="phoneInput" class="form-control form-control-lg" value="+86 135 OOOO OOOO" required>
+                            <input type="text" id="phoneInput" class="form-control form-control-lg" value="{{ phone }}" placeholder="Enter your phone number" required>
                         </div>
                     </div>
 

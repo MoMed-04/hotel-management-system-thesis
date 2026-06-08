@@ -33,7 +33,30 @@ def orders():
 
 @guest_bp.route('/account')
 def account():
-    return render_template('guest/guest_account.html')
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+    
+    # Set defaults for new users
+    full_name = ""
+    email = ""
+    phone = ""
+    
+    # Fetch actual user data from database
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("SELECT full_name, email, phone FROM customers WHERE user_id = ?", (session['user_id'],))
+        row = cursor.fetchone()
+        
+        if row:
+            full_name = row[0] if row[0] else ""
+            email = row[1] if row[1] else ""
+            phone = row[2] if row[2] else ""
+    except Exception as e:
+        print(f"Profile Load Error: {e}")
+
+    # Pass the real data to the HTML page
+    return render_template('guest/guest_account.html', full_name=full_name, email=email, phone=phone)
 
 @guest_bp.route('/chat')
 def chat():
@@ -176,7 +199,7 @@ def api_search_rooms():
 
 
 # ==========================================
-# 4. RULE-BASED AI & ADMIN LOGGER API (Fully Fixed)
+# 4. RULE-BASED AI & ADMIN LOGGER API
 # ==========================================
 @guest_bp.route('/api/chat', methods=['POST'])
 def api_chat():
@@ -193,8 +216,6 @@ def api_chat():
     user_id = session.get('user_id')
 
     # --- 1. THE SMART LOGIC TREE ---
-    
-    # FIX: Only say hello if the entire message is 3 words or less.
     if len(words) <= 3 and any(w in words for w in ['hi', 'hello', 'hey']):
         reply = f"Hello {username}! I am the SaaS Hotel Assistant. How can I help you today?"
         
@@ -282,7 +303,7 @@ def api_my_rooms():
 
 
 # ==========================================
-# 6. SUBMIT REVIEW API
+# 6. SUBMIT REVIEW API (Fixed DB Schema Bug)
 # ==========================================
 @guest_bp.route('/api/submit_review', methods=['POST'])
 def api_submit_review():
@@ -290,7 +311,6 @@ def api_submit_review():
         return jsonify({'success': False, 'error': 'Authentication required'}), 401
 
     data = request.json
-    user_id = session.get('user_id')
     username = session.get('username', 'Guest')
     room_id = data.get('room_id')
     stars = data.get('stars')
@@ -300,15 +320,17 @@ def api_submit_review():
         db = get_db()
         cursor = db.cursor()
 
+        # Removed user_id column to match the actual database table structure
         cursor.execute("""
-            INSERT INTO reviews (user_id, room_id, username, stars, review_text)
-            VALUES (?, ?, ?, ?, ?)
-        """, (user_id, room_id, username, stars, review_text))
+            INSERT INTO reviews (room_id, username, stars, review_text)
+            VALUES (?, ?, ?, ?)
+        """, (room_id, username, stars, review_text))
 
         db.commit()
         return jsonify({'success': True})
 
     except Exception as e:
+        import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -370,8 +392,10 @@ def api_my_tickets():
 
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-    # ==========================================
-# 9. UPDATE GUEST PROFILE
+
+
+# ==========================================
+# 9. UPDATE GUEST PROFILE (Fixed Ghost User Bug)
 # ==========================================
 @guest_bp.route('/api/update_profile', methods=['POST'])
 def api_update_profile():
@@ -388,13 +412,24 @@ def api_update_profile():
         db = get_db()
         cursor = db.cursor()
         
-        # Update the customer record linked to this user account
-        cursor.execute("""
-            UPDATE customers 
-            SET full_name = ?, email = ?, phone = ?
-            WHERE user_id = ?
-        """, (full_name, email, phone, user_id))
+        # Check if this user already has a profile in the customers table
+        cursor.execute("SELECT id FROM customers WHERE user_id = ?", (user_id,))
+        customer = cursor.fetchone()
         
+        if customer:
+            # They exist, so we UPDATE
+            cursor.execute("""
+                UPDATE customers 
+                SET full_name = ?, email = ?, phone = ?
+                WHERE user_id = ?
+            """, (full_name, email, phone, user_id))
+        else:
+            # They are a brand new user, so we INSERT
+            cursor.execute("""
+                INSERT INTO customers (user_id, full_name, email, phone)
+                VALUES (?, ?, ?, ?)
+            """, (user_id, full_name, email, phone))
+            
         db.commit()
         return jsonify({'success': True})
     except Exception as e:
